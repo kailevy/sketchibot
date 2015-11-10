@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-A simple echo server
+A marker control server
 """
 
 import socket

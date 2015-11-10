@@ -2,6 +2,9 @@ import RPi.GPIO as GPIO
 import time
 
 class ServoControl(object):
+    """
+    Class which controls GPIO pins to actuate servo with marker attachment
+    """
 
     def __init__(self, servo_pin=11):
         self.servo_pin = servo_pin
@@ -21,9 +24,15 @@ class ServoControl(object):
         self.pwm.start(self.states[self.state])
 
     def get_angle(self,angle):
+        """
+        Calculates duty cycle for a given angle between 0-180
+        """
         return self.m * (angle - self.p1[0]) + self.p1[1]
 
     def move_marker(self,command):
+        """
+        Tries to set the marker down (1) or up (0)
+        """
         try:
             self.pwm.ChangeDutyCycle(self.states[int(command)])
         except (KeyError, ValueError):

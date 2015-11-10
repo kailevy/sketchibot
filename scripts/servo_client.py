@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 """
-A simple echo client
+A simple marker control cleint
 
-This code must go into neato_node bringup_minimal.launch:
+This code must go into neato_node's bringup_minimal.launch:
 
     <node name="marker_node" pkg="sketchibot" type="servo_client.py" output="screen">
         <param name="host" value="$(arg host)" />
