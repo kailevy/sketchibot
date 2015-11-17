@@ -1,4 +1,4 @@
-image: /home/wooj/corner_map.pgm
+image: /home/wooj/Programs/CompRobo/src/sketchibot/corner_map.pgm
 resolution: 0.020000
 origin: [-5.000000, -5.000000, 0.000000]
 negate: 0
