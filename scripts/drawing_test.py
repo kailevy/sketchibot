@@ -1,50 +1,134 @@
 #!/usr/bin/env python
 
-""" A simple script to visualize the SIFT descriptor for an interactively drawn sketch """
+'''Drives the robot in a square using the /odom and /base_link reference frames'''
 
-import numpy as np
-import cv2
-from math import pi, cos, sin
+import tty
+import select
+import sys
+import termios
+import time
 import rospy
+import tf
+import math
+from geometry_msgs.msg import Twist, Vector3
+from std_msgs.msg import Header, String 
 
+rospy.init_node('square_node')
 
+tf_listener = tf.TransformListener()
+tf_br = tf.TransformBroadcaster()
 
-waypoints = []
-drawing = False
-V = None
-patch_size = (512,512)
-# we will draw our patch on im
-im =  255*np.ones(patch_size,dtype=np.uint8)
+pub=rospy.Publisher('/cmd_vel',Twist,queue_size=10)
+pub2=rospy.Publisher('/servo_command',String,queue_size=10)
 
-def mouse_event(event,x,y,flag,dc):
-	""" handle mouse events, basically lets you sketch by clicking in the left pane """
-	global drawing
-	global last_x
-	global last_y
-	if event == cv2.EVENT_LBUTTONDOWN:
-		drawing = True
-		last_x = x
-		last_y = y
-	elif event == cv2.EVENT_LBUTTONUP:
-		drawing = False
-	elif event == cv2.EVENT_MOUSEMOVE and drawing:
-		# draw a line between the last mouse position and the current one
-		cv2.line(im,(int(x),int(y)),(int(last_x),int(last_y)),0,2)
-		last_x = x
-		last_y = y
-		waypoints.append[(x,y)]
+def line():
+	now = rospy.Time.now()
+	tf_listener.waitForTransform("/odom","/base_link",now+rospy.Duration(1), rospy.Duration(5.0)) #sets the reference frame to where the robot is (it's starting position)
+	(start_trans,start_rot)=tf_listener.lookupTransform("/odom","/base_link",now) #sets up the "zero" translation and rotation based on the robot's reference frame
+	pub.publish(forward())
+	not_there=True #not_there is true when the robot has not gone a meter yet, and false once it has
+	r=rospy.Rate(10)
+	while not_there:
+		print 'making line'
+		now = rospy.Time.now()
+		tf_br.sendTransform(start_trans, start_rot, now, "start","odom") #sends ROS the frame of where it started
+		tf_listener.waitForTransform("/base_link","/start",now,rospy.Duration(5.0)) #transform of fram of where it is and frame of where it started
+		(trans,rot) = tf_listener.lookupTransform("/base_link","/start",now)
+		if math.sqrt(trans[0]**2+trans[1]**2)>1: #If total robot distance traveled is 1, finish line
+			not_there=False
+			return 'done'
+		r.sleep()
 
-if __name__ == '__main__':
-	cv2.namedWindow("mywin")
-	cv2.setMouseCallback("mywin",mouse_event)
+def rotate():
+	now = rospy.Time.now()
+	tf_listener.waitForTransform("/odom","/base_link",now+rospy.Duration(1), rospy.Duration(5.0)) #sets the reference frame to where the robot is (it's starting position)
+	(start_trans,start_rot)=tf_listener.lookupTransform("/odom","/base_link",now) #sets up the "zero" translation and rotation based on the robot's reference frame
+	pub.publish(turn_right())
+	not_there=True #not_there is true when the robot has not turned 90 degrees yet, and false once it has
+	r=rospy.Rate(10)
+	while not_there:
+		print 'turning'
+		now = rospy.Time.now()
+		tf_br.sendTransform(start_trans, start_rot, now, "start","odom") #sends ROS the frame of where it started
+		tf_listener.waitForTransform("/base_link","/start",now,rospy.Duration(5.0)) #transform of fram of where it is and frame of where it started
+		(trans,rot) = tf_listener.lookupTransform("/base_link","/start",now)
+		if rot[2]>0.45: 	#If turned about 90 degrees, stop
+			return 'done'
+		r.sleep()
 
-	print "Draw on the canvas by clicking and holding the mouse (move slowly)"
-	print "Reset the sketch by pressing the spacebar"
+#drives in a line, then turns 4 times
 
-	while not rospy.is_shutdown():
-		cv2.imshow("mywin", im)
-		key = cv2.waitKey(25)
-		if key != -1 and chr(key) == ' ':
-			# if you hit space bar, you should resest the sketch on the left
-			im =  255*np.ones(patch_size,dtype=np.uint8)
-			print waypoints
+def square():
+	# for i in range(10):
+	# 	pub2.publish(String(data='1'))
+	time.sleep(3)
+	for i in range(4):
+		time.sleep(.5)
+		res=line()
+		print res
+		pub.publish(stop())
+		res=rotate()
+		print res
+		pub.publish(stop())
+	pub2.publish(String(data='0'))
+	print 'mission complete'
+
+#Move forward commands
+
+forward_lin=Vector3(x=0.5,y=0.0,z=0.0)
+forward_ang=Vector3(x=0.0,y=0.0,z=0.0)
+forward_msg=Twist(linear=forward_lin, angular=forward_ang)
+
+#Move backward commands
+
+backward_lin=Vector3(x=-0.5,y=0.0,z=0.0)
+backward_ang=Vector3(x=0.0,y=0.0,z=0.0)
+backward_msg=Twist(linear=backward_lin, angular=backward_ang)
+
+#turn left commands
+
+turn_left_lin=Vector3(x=0.0,y=0.0,z=0.0)
+turn_left_ang=Vector3(x=0.0,y=0.0,z=1.0)
+turn_left_msg=Twist(linear=turn_left_lin, angular=turn_left_ang)
+
+#turn right commands
+
+turn_right_lin=Vector3(x=0.0,y=0.0,z=0.0)
+turn_right_ang=Vector3(x=0.0,y=0.0,z=-1.0)
+turn_right_msg=Twist(linear=turn_right_lin, angular=turn_right_ang)
+
+#stop commands
+
+stop_lin=Vector3(x=0.0,y=0.0,z=0.0)
+stop_ang=Vector3(x=0.0,y=0.0,z=0.0)
+stop_msg=Twist(linear=stop_lin, angular=stop_ang)
+
+def forward():	#move forward
+	print 'forward'
+	return forward_msg
+
+def backward():	#move backward
+	print 'backward'
+	return backward_msg
+
+def turn_left():	#turn left
+	print 'turn left'
+	return turn_left_msg
+
+def turn_right():	#turn right
+	print 'turn right'
+	return turn_right_msg
+
+def stop():		#stop
+	print 'STHAAAPPPPP'
+	return stop_msg
+
+r = rospy.Rate(5)
+i = 0
+while not rospy.is_shutdown():
+	pub2.publish(String(data="1"))
+	r.sleep()
+	i += 1
+	if i == 10:
+		break
+square()
