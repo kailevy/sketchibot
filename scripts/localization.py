@@ -52,7 +52,7 @@ class Sketchibot(object):
 		self.x,   self.y,   self.th   = (0, 0, 0)
 		self.x_f, self.y_f, self.th_f = (0, 0, 0)
 
-		self.waypoints = (((1.0, 0.0, -np.pi/2), (1.0, 0.0, -np.pi/2), (1.0, 0.0, -np.pi/2), (1.0, 0.0, -np.pi/2)),
+		self.waypoints = (((0.5, 0.0, -np.pi/2), (0.5, 0.5, -np.pi/2), (0, 0.5, -np.pi/2), (0.0, 0.0, -np.pi/2)),
 			              ((1.0, 0.0, np.pi/2), (1.0, 0.0, np.pi/2), (1.0, 0.0, np.pi/2), (1.0, 0.0, np.pi/2)))
 		self.waypoint = 0  # Current waypoint
 		self.contour = 0   # Current contour
@@ -66,7 +66,6 @@ class Sketchibot(object):
 	def odom_callback(self, msg):
 		pose = msg.pose.pose
 		# self.x, self.y, self.th = convert_pose_to_xy_and_theta(pose)
-
 
 	""" Publishes a waypoint to the Neato, with the map as the coordinate frame
 			pos - delta in translational motion
@@ -89,8 +88,14 @@ class Sketchibot(object):
 
 	""" Checks if goal has been reached """
 	def reached_goal(self):
-		dist = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2 + (self.th_f - self.th)**2)
-		return dist < 0.2
+		diff_th = self.th_f - self.th
+
+		# Tries different multiples of 2 pi to get the correct error value (ex. 6.28 rad and 0 rad should mean zero error)
+		dist1 = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2 + (diff_th)**2)
+		dist2 = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2 + (diff_th - 2*np.pi)**2)
+		dist3 = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2 + (diff_th + 2*np.pi)**2)
+
+		return dist1 < 0.2 or dist2 < 0.2 or dist3 < 0.2
 
 	""" Main loop that sends velocity commands to the Neato """
 	def run(self):
@@ -107,12 +112,8 @@ class Sketchibot(object):
 
 			if done:
 				self.waypoint += 1
-				self.x_0 = self.x_f
-				self.y_0 = self.y_f
 				self.th_0 = self.th_f
 			if self.waypoint == 4:
-				print "last one?"
-			if self.waypoint == 5:
 				print "done!"
 				rospy.spin()
 
