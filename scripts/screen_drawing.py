@@ -4,7 +4,7 @@
 
 import numpy as np
 import cv2
-from math import pi, cos, sin
+from math import pi, cos, sin, sqrt, atan2
 import rospy
 
 class PathDrawing():
@@ -12,13 +12,13 @@ class PathDrawing():
         self.stroke = []
         self.strokes = []
         self.drawing = False
-        self.scale = 100
+        self.scale = 200.0
 
     def scale_patch(self,x,y):
-        """X and Y are in feet, scale is 1 ft to 100 pixels"""
-        self.pagex = float(x)*self.scale
-        self.pagey = float(y)*self.scale
-        self.patch_size = (self.pagey,self.pagex)
+        """X and Y are in feet, scale is 1 meter to 200 pixels"""
+        self.pagex = float(x)
+        self.pagey = float(y)
+        self.patch_size = (self.pagey*self.scale,self.pagex*self.scale)
         # we will draw our patch on im
         self.im = 255*np.ones(self.patch_size,dtype=np.uint8)
 
@@ -59,23 +59,50 @@ class PathDrawing():
                 self.scale_strokes()
                 print 'Normalized:'
                 print self.strokes
+                print 'Filtered:'
+                self.colinear_points()
+                self.point_distance_filtering()
+                print self.strokes
                 self.strokes = []
 
-    def normalize_strokes(self):
-        """normalizes strokes to 1"""
-        for path in self.strokes:
-            for i in range(len(path)):
-                path[i][0] = path[i][0]/self.pagex
-                path[i][1] = path[i][1]/self.pagey
-
     def scale_strokes(self):
-        """scales strokes to paper size. THIS PART ISNT QUITE WORKING"""
+        """scales the strokes to the page size"""
         for path in self.strokes:
             for i in range(len(path)):
-                path[i][0] = path[i][0]*(self.scale/self.pagex)
-                path[i][1] = path[i][1]*(self.scale/self.pagey)       
+                path[i][0] = path[i][0]/self.scale
+                path[i][1] = path[i][1]/self.scale
+
+    def point_distance_filtering(self):
+        for path in self.strokes:
+            for i in range(len(path)):
+                if i<len(path)-1:
+                    if i>1:
+                        distance = sqrt((path[i][0]-path[i+1][0])**2 + (path[i][1]-path[i+1][1])**2)
+                        if distance < .25:
+                            path.pop(i+1)
+
+    def colinear_points(self):
+        for path in self.strokes:
+            for i in range(len(path)):
+                if i<len(path)-2:
+                    if i > 2:
+                        radangle1 = atan2(path[i+1][1]-path[i][1],path[i+1][0]-path[i][0])
+                        radangle2 = atan2(path[i+2][1]-path[i+1][1],path[i+2][0]-path[i+1][0])
+                        angle1 = radangle1*180/pi
+                        angle2 = radangle2*180/pi
+                        if abs(angle2-angle1) < 45:
+                            path.pop(i+1)
+
+    def add_heading(self):
+        for path in self.strokes:
+            for i in range(len(path)):
+                if i<len(path)-1:
+                    heading = atan2(path[i+1][1],path[i+1][0])#not sure which reference frame heading is
+                    path[i].append(heading)
+                else:
+                    path[i].append(heading)#appends previous heading if no extra path
 
 if __name__ == '__main__':
     drawing = PathDrawing()
-    drawing.scale_patch(4,4)
+    drawing.scale_patch(1,4)
     drawing.draw_strokes()
