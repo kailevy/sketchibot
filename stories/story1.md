@@ -32,13 +32,13 @@ Once we had an actuating marker, we started tackling the process of planning a p
 
 [![Click me!](http://img.youtube.com/vi/3kpEW2YwMAc/0.jpg)](https://www.youtube.com/watch?v=3kpEW2YwMAc)
 
-That worked, but it wasn't very robust or particularly precise. So we decided to examine techniques with setting waypoints for the robot via ROS's built-in navigation stack, using a map to keep trap of it's own position.
+That worked, but it wasn't very robust or particularly precise. So we decided to examine techniques with setting waypoints for the robot via ROS's built-in navigation stack, using a map to keep track of it's own position. By using the 'move_base' node, it is possible to publish goals for the robot to travel to, and the node will automatically publish commands to /cmd_vel to drive the Neato along path to the waypoint. Theoretically, the points of the image can be passed to the goal topic in the 'move_base' node, and the Neato will try its best to go to each of the individual points.
 <!-- TODO: @Jay: Elaborate on this? -->
-The results, which can be viewed below, were less than stellar.
+However, the results, which can be viewed below, were less than stellar. Although the Neato reaches all of its individual goals with little error, the path-planning algorithm is sub-optimal. The overshoot is compensated for by turning the Neato around a full 180 degrees in order to get back to the waypoint location, producing much uglier images.
 
 [![Click me!](http://img.youtube.com/vi/yITSF0bupNE/0.jpg)](https://www.youtube.com/watch?v=yITSF0bupNE)
 
-Since then, we have been exploring other methods...
+Given this shortcoming, we've looked into more robust solutions. Using an IMU, the odometry data can be vastly improved to account for wheel slippages. By Kalman filtering the IMU data, the heading can be approximated much more accurately, which could really help with pointing the robot towards the next waypoint location. As for getting the position of the Neato, we could continue using our SLAM and particle filter code and possibly fuse that data with the IMU-corrected odometry readings to improve location tracking.
 <!-- TODO: @Jay: Elaborate on this -->
 
 ### Command Planning and Virtual Interface
