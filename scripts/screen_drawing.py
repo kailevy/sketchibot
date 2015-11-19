@@ -110,7 +110,7 @@ class PathDrawing():
         for path in self.strokes:
             for i in range(len(path)):
                 if i<len(path)-1:
-                    cv2.arrowedLine(self.im2, (int(path[i][0]*self.scale), int(path[i][1]*self.scale)), (int(path[i+1][0]*self.scale), int(path[i+1][1]*self.scale)), (0, 0, 255), thickness=1)
+                    cv2.circle(self.im2, (int(path[i][0]*self.scale), int(path[i][1]*self.scale)), 1,(0, 0, 255), thickness=1)
 
 if __name__ == '__main__':
     drawing = PathDrawing()
