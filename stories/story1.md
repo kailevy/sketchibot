@@ -56,4 +56,12 @@ The resultant data structure came out as a list of lists, where each inner list 
 In order to command the robot to draw an image, we need to send the Neato a series of waypoints that it would have to get to with the marker down. We created a drawing test and visual interface to format the waypoints nicely. In this interface, you can sketch out a path or series of paths on screen with a "page" proportional to the size of the actual paper size the Neato will be drawing on. Each path consists of a series of waypoints, and all of the waypoints are scaled up to the actual dimensions the Neato works in (meters). Once the scaling is performed, the paths undergo two filtration methods: one in which waypoints within a certain distance from prior waypoints are filtered out, and one in which waypoints within a certain angle tolerance are filtered out. The final "directions" for the Neato consist of a single array of paths, each path being an array of waypoint coordinates.
 
 ## Decisions Going Forward
-<!-- TODO: @Everyone: Do this -->
+Moving forwards, the main goal we would like to tackle first is integration. Currently, we have three major components that need to be integrated into one system:
+* Converting an image into a series of contours using Canny edge detection
+* Converting the points in each contour into a series of waypoints
+* Telling the Neato to go to each of the waypoints
+Hopefully, we can get an initial test of our complete system running!
+
+In addition to integration, we will need to improve each of the subsystems to get better performance. The Canny edge detection may need more tuning, and we will probably also explore different path filtering methods to enable the robot to draw smarter and faster. We are hoping to look into certain algorithms to prioritize certain strokes over others, and given that the Neato must move to each point in each contour, this is essentially a Traveling Salesman problem. Finally, the IMU needs to be integrated into the overall system to improve the Neato's sensor capabilities and to improve the localization behavior.
+
+Generally speaking, we feel we're in a pretty good spot, and if we have some spare time in the following 3 weeks, we might look into the Tesseract package in more detail!
