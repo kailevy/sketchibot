@@ -57,7 +57,7 @@ class PathDrawing():
                 self.im =  255*np.ones(self.patch_size,dtype=np.uint8)
                 print self.strokes
                 self.scale_strokes()
-                print 'Normalized:'
+                print 'Scaled:'
                 print self.strokes
                 print 'Filtered:'
                 self.colinear_points()
@@ -104,5 +104,5 @@ class PathDrawing():
 
 if __name__ == '__main__':
     drawing = PathDrawing()
-    drawing.scale_patch(1,4)
+    drawing.scale_patch(2,2)
     drawing.draw_strokes()

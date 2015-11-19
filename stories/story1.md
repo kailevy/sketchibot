@@ -21,7 +21,7 @@ In order to draw with our Neato, we needed to attach some drawing device. We wen
 
 Then, we attached a marker to a 3-D printed part that Alex designed, which mounted to a Servo that is wired into the Raspberry Pi that controls the Neato.
 
-<!-- TODO: @Alex: Put a render of the CAD, or a good pic of the attached marker? -->
+![SketchiBot's vital upgrades](../images/neato_marker.JPG)
 
 At this point, with the help of Paul, we interfaced into the Raspberry Pi and created a file that would control the Servo with PWM, adapted from [here](http://www.toptechboy.com/raspberry-pi/raspberry-pi-lesson-28-controlling-a-servo-on-raspberry-pi-with-python/). This script also included a simple server that we would be able to connect to from our computers. With that, we were able create a ROS node that would connect to the Pi server upon connecting to a Neato, and would continually listen to the ROS topic, `/servo_command`, causing the marker to actuate up and down. It was successful, and we were able to draw things by manually driving the robot and the marker!
 
@@ -40,10 +40,6 @@ However, the results, which can be viewed below, were less than stellar. Althoug
 
 Given this shortcoming, we've looked into more robust solutions. Using an IMU, the odometry data can be vastly improved to account for wheel slippages. By Kalman filtering the IMU data, the heading can be approximated much more accurately, which could really help with pointing the robot towards the next waypoint location. As for getting the position of the Neato, we could continue using our SLAM and particle filter code and possibly fuse that data with the IMU-corrected odometry readings to improve location tracking.
 
-### Command Planning and Virtual Interface
-<!-- TODO: @Alex: Fill this in? I don't really know how to talk about it -->
-
-
 ### Edge Detection and Contour Finding
 We played around a bit with ways to convert our target images into drawable commands, and decided to try using Canny Edge Detection to find the most important edges to draw in order to get a good rendering of the image. This operation is built into OpenCV, and was fairly straightforward to get start on. Once we grey-scaled our target image, we simply ran the operation in order to get our a binarized image of the edges.
 
@@ -54,6 +50,10 @@ From here, we tried using OpenCV's contour finding to break these edges into str
 ![Contour plotting of a cow!](../images/cow_gif.gif)
 
 The resultant data structure came out as a list of lists, where each inner list is a contour, and each contour a list of points. In essence, a collection of strokes in 'connect-the-dots' form. We noticed however that the strokes weren't ordered very logically, and would often jump around, which would be very inefficient for our robot. Additionally, a few times multiple strokes covered the same edges on the image-- we plan on exploring methods of pre-filtering to cut down on these inefficiencies.
+
+### Command Planning and Virtual Interface
+
+In order to command the robot to draw an image, we need to send the Neato a series of waypoints that it would have to get to with the marker down. We created a drawing test and visual interface to format the waypoints nicely. In this interface, you can sketch out a path or series of paths on screen with a "page" proportional to the size of the actual paper size the Neato will be drawing on. Each path consists of a series of waypoints, and all of the waypoints are scaled up to the actual dimensions the Neato works in (meters). Once the scaling is performed, the paths undergo two filtration methods: one in which waypoints within a certain distance from prior waypoints are filtered out, and one in which waypoints within a certain angle tolerance are filtered out. The final "directions" for the Neato consist of a single array of paths, each path being an array of waypoint coordinates.
 
 ## Decisions Going Forward
 <!-- TODO: @Everyone: Do this -->
