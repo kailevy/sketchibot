@@ -48,11 +48,11 @@ Since then, we have been exploring other methods...
 ### Edge Detection and Contour Finding
 We played around a bit with ways to convert our target images into drawable commands, and decided to try using Canny Edge Detection to find the most important edges to draw in order to get a good rendering of the image. This operation is built into OpenCV, and was fairly straightforward to get start on. Once we grey-scaled our target image, we simply ran the operation in order to get our a binarized image of the edges.
 
-<!-- TODO: @Kai: Insert example image -->
+![Cow edges!](../images/cow_edges.png)
 
 From here, we tried using OpenCV's contour finding to break these edges into strokes. After playing with the parameters, we got some pretty good results on our trial images!
 
-<!-- TODO: @Kai: Insert example gif demonstration -->
+![Contour plotting of a cow!](../images/cow_gif.gif)
 
 The resultant data structure came out as a list of lists, where each inner list is a contour, and each contour a list of points. In essence, a collection of strokes in 'connect-the-dots' form. We noticed however that the strokes weren't ordered very logically, and would often jump around, which would be very inefficient for our robot. Additionally, a few times multiple strokes covered the same edges on the image-- we plan on exploring methods of pre-filtering to cut down on these inefficiencies.
 
