@@ -63,8 +63,8 @@ class PathDrawing():
                 print 'Scaled:'
                 print self.strokes
                 print 'Filtered:'
-                self.point_distance_filtering()
-                self.colinear_points()
+                self.point_filtering()
+                # self.colinear_points()
                 print self.strokes
                 self.plot_strokes()
                 self.strokes = []
@@ -76,26 +76,30 @@ class PathDrawing():
                 path[i][0] = path[i][0]/self.scale
                 path[i][1] = path[i][1]/self.scale
 
-    def point_distance_filtering(self):
+    def point_filtering(self):
+        filtered_cpaths = []
+        threshold = .2
+        angle_thresh = 20
         for path in self.strokes:
-            for i in range(len(path)):
-                if i<len(path)-1:
-                    if i>1:
-                        distance = sqrt((path[i][0]-path[i+1][0])**2 + (path[i][1]-path[i+1][1])**2)
-                        if distance < .5:
-                            path.pop(i+1)
-
-    def colinear_points(self):
-        for path in self.strokes:
-            for i in range(len(path)):
-                if i<len(path)-2:
-                    if i > 2:
-                        radangle1 = atan2(path[i+1][1]-path[i][1],path[i+1][0]-path[i][0])
-                        radangle2 = atan2(path[i+2][1]-path[i+1][1],path[i+2][0]-path[i+1][0])
-                        angle1 = radangle1*180/pi
-                        angle2 = radangle2*180/pi
-                        if abs(angle2-angle1) < 10:
-                            path.pop(i+1)
+            filtered_cpath = []
+            i = 0
+            while i < len(path) - 3:
+                j = i + 1
+                filtered_cpath.append(path[i])
+                distance = 0
+                anglediff = 0
+                while distance < threshold and anglediff < angle_thresh and j < len(path)-2:
+                    radangle1 = atan2(path[j][1]-path[i][1],path[j][0]-path[i][0])
+                    radangle2 = atan2(path[j+1][1]-path[j][1],path[j+1][0]-path[j][0])
+                    angle1 = radangle1*180/pi
+                    angle2 = radangle2*180/pi
+                    anglediff = abs(angle2-angle1)
+                    distance = sqrt((path[i][0]-path[j][0])**2 + (path[i][1]-path[j][1])**2)
+                    j += 1
+                i = j
+            filtered_cpath.append(path[-1])
+            filtered_cpaths.append(filtered_cpath)
+        self.strokes = filtered_cpaths  
 
     def add_heading(self):
         for path in self.strokes:
