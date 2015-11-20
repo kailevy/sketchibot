@@ -55,7 +55,7 @@ The resultant data structure came out as a list of lists, where each inner list 
 
 In order to command the robot to draw an image, we need to send the Neato a series of waypoints that it would have to get to with the marker down. We created a drawing test and visual interface to format the waypoints nicely. In this interface, you can sketch out a path or series of paths on screen with a "page" proportional to the size of the actual paper size the Neato will be drawing on. Each path consists of a series of waypoints, and all of the waypoints are scaled up to the actual dimensions the Neato works in (meters). Once the scaling is performed, the paths undergo two filtration methods: one in which waypoints within a certain distance from prior waypoints are filtered out, and one in which waypoints within a certain angle tolerance are filtered out. The final "directions" for the Neato consist of a single array of paths, each path being an array of waypoint coordinates. The image below shows a series of drawn paths, on the left, and a corresponding plot of filtered waypoints corresponding to that path on the right.
 
-![Waypoint generation and filtration on a (terribly) drawn smile.](../images/smile_waypoints.png)
+<img src="../images/smile2.png" alt="Waypoint generation and filtration on a (terribly) drawn smile." width="400">
 
 ## Decisions Going Forward
 Moving forwards, the main goal we would like to tackle first is integration. Currently, we have three major components that need to be integrated into one system:
