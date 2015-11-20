@@ -8,9 +8,9 @@ from math import pi, cos, sin, sqrt, atan2
 import rospy
 
 class PathDrawing():
-    def __init__(self, strokes = [],(xlim,ylim)):
-        self.xlim = xlim
-        self.ylim = ylim
+    def __init__(self, strokes = [],size=(250,250)):
+        self.xlim = size[0]
+        self.ylim = size[1]
         self.stroke = []
         self.strokes = strokes
         self.drawing = False
