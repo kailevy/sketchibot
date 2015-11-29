@@ -30,9 +30,13 @@ class EdgeDetector(object):
         cv2.imshow('edges', self.edges)
         cv2.waitKey(0)
 
-    def animate_contours(self):
+    def animate_contours(self, path='default'):
         im2 = np.zeros(self.img.shape)
-        for contour in self.contours:
+        if path == 'default':
+            path = self.contours
+        elif path == 'sorted':
+            path = self.path
+        for contour in path:
             cv2.circle(im2,(contour[0][0],contour[0][1]),1,(255,255,255))
             cv2.circle(im2,(contour[-1][0],contour[-1][1]),1,(255,255,255))
             for idx, point in enumerate(contour[0:-1]):
@@ -43,9 +47,33 @@ class EdgeDetector(object):
                 cv2.waitKey(1)
         cv2.waitKey(0)
 
-    def sort_contours(self):
-        # TODO: Implement this, sort them for least amount of travelling between strokes
-        pass
+    def make_distance_graph(self):
+        # Obsolete?
+        self.distances = {}
+        for index, l in enumerate(self.contours):
+            tmp = []
+            end = l[-1]
+            for index2, l2 in enumerate(self.contours):
+                if index != index2:
+                    tmp.append([index2, np.linalg.norm(end-l2[0])])
+            self.distances[index] = tmp
+
+    def sort_contours(self, start=0):
+        """
+        Calculates path through all strokes by using min distance approach to TSP (not most efficient)
+        Goes to the closest stroke from each one
+        """
+        unvisited = {}
+        for index, contour in enumerate(self.contours):
+            unvisited[index] = contour
+        path = [unvisited[start]]
+        unvisited.pop(start, None)
+        while unvisited:
+            end = path[-1][-1]
+            nearest = min(unvisited, key=lambda x: np.linalg.norm(end-unvisited[x][0]))
+            path.append(unvisited[nearest])
+            unvisited.pop(nearest, None)
+        self.path = path
 
     def get_contours(self):
         return self.contours
@@ -59,6 +87,8 @@ if __name__ == '__main__':
     det.reconstruct_contours()
     # det.display_image()
     # det.display_edges()
-    # det.animate_contours()
+    det.sort_contours()
+    det.animate_contours()
+    det.animate_contours('sorted')
     strokes = det.get_contours()
     size = det.get_size()
