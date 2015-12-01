@@ -55,17 +55,19 @@ class PathDrawing():
             cv2.imshow("mywin1", self.im1)
             cv2.imshow("mywin2", self.im2)
             key = cv2.waitKey(25)
-            if key != -1 and chr(key) == ' ':
+
+            if key != -1 and key & 0xFF == ord(' '):
                 # if you hit space bar, you should reset the sketch on the left
                 #self.im1 =  255*np.ones(self.patch_size,dtype=np.uint8)
-                print self.strokes
+                #print self.strokes
                 self.scale_strokes()
-                print 'Scaled:'
-                print self.strokes
+                #print 'Scaled:'
+                #print self.strokes
                 print 'Filtered:'
                 self.point_filtering()
                 print self.strokes
                 self.plot_strokes()
+                return self.strokes
                 self.strokes = []
 
     def scale_strokes(self):
