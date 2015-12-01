@@ -43,14 +43,14 @@ class Sketchibot(object):
 		# rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.position_callback)
 		rospy.Subscriber('/odom', Odometry, self.odom_callback)
 
-		# Transformation from map to base_link
-		listener = tf.TransformListener()
-		listener.waitForTransform('/map', '/base_link', rospy.Time(), rospy.Duration(3.0))
-		(pos, rot) = listener.lookupTransform('/map', '/base_link', rospy.Time())
-		initial_pose = convert_to_pose(pos, rot)
+		# # Transformation from map to base_link
+		# listener = tf.TransformListener()
+		# listener.waitForTransform('/map', '/base_link', rospy.Time(), rospy.Duration(3.0))
+		# (pos, rot) = listener.lookupTransform('/map', '/base_link', rospy.Time())
+		# initial_pose = convert_to_pose(pos, rot)
 
 		# Initial, current, and final state variables of the Neato
-		self.x_0, self.y_0, self.th_0 = convert_pose_to_xy_and_theta(initial_pose)
+		self.x_0, self.y_0, self.th_0 = (0, 0, 0)
 		self.x,   self.y,   self.th   = (0, 0, 0)
 		self.x_f, self.y_f, self.th_f = (0, 0, 0)
 
@@ -64,7 +64,7 @@ class Sketchibot(object):
 	""" Callback function for Neato's odometry reading """
 	def odom_callback(self, msg):
 		pose = msg.pose.pose
-		self.x, self.y, self.th = convert_pose_to_xy_and_theta(pose)[0:2]
+		self.x, self.y, self.th = convert_pose_to_xy_and_theta(pose)
 
 	""" Publishes a waypoint to the Neato, with the map as the coordinate frame
 			pos - delta in translational motion
@@ -116,7 +116,7 @@ class Sketchibot(object):
 
 	""" Gets a list of points to follow """
 	def get_contours(self):
-		return None
+		return [[np.array([0, 1], dtype=np.int32), np.array([1, 1], dtype=np.int32)]]
 
 	""" Main loop that sends velocity commands to the Neato """
 	def run(self):
