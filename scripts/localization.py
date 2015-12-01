@@ -12,7 +12,7 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import Header
 
 from edge_detect import *
-from screen_drawing_working import *
+from screen_drawing_jay import *
 
 """ Converts a translation and rotation component to a Pose object """
 def convert_to_pose(translation, rotation):
