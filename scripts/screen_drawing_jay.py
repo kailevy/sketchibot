@@ -6,21 +6,18 @@ import numpy as np
 import cv2
 from math import pi, cos, sin, sqrt, atan2
 import rospy
-import edge_detect.py
 
 class PathDrawing():
-    def __init__(self, strokes = [],size=(250,250)):
-        self.xlim = size[0]
-        self.ylim = size[1]
+    def __init__(self):
         self.stroke = []
-        self.strokes = strokes
+        self.strokes = []
         self.drawing = False
         self.scale = 200.0
 
-    def scale_patch(self):
+    def scale_patch(self,x,y):
         """X and Y are in feet, scale is 1 meter to 200 pixels"""
-        self.pagex = float(self.xlim)
-        self.pagey = float(self.ylim)
+        self.pagex = float(x)
+        self.pagey = float(y)
         self.patch_size = (self.pagey*self.scale,self.pagex*self.scale)
         # we will draw our patch on im
         self.im1 = 255*np.ones(self.patch_size,dtype=np.uint8)
@@ -58,35 +55,20 @@ class PathDrawing():
             cv2.imshow("mywin1", self.im1)
             cv2.imshow("mywin2", self.im2)
             key = cv2.waitKey(25)
-            if key != -1 and chr(key) == ' ':
+
+            if key != -1 and key & 0xFF == ord(' '):
                 # if you hit space bar, you should reset the sketch on the left
-                self.im1 =  255*np.ones(self.patch_size,dtype=np.uint8)
-                self.strokes = []
-                print self.strokes
+                #self.im1 =  255*np.ones(self.patch_size,dtype=np.uint8)
+                #print self.strokes
                 self.scale_strokes()
                 #print 'Scaled:'
                 #print self.strokes
-                #print 'Filtered:'
+                print 'Filtered:'
                 self.point_filtering()
-                self.colinear_points()
-                #print self.strokes
+                print self.strokes
                 self.plot_strokes()
-
-    #def scale_filter_plot(self):
-    def scale_calc(self,xpage,ypage,xim,yim):
-        imrat = self.xim/self.yim
-        pagerat = self.xpage/self.ypage
-        if imrat < pagerat:
-            scalefactor = ypage/yim
-        else:
-            scalefactor = xpage/xim
-        return scalefactor
-
-    def scale_strokes2(self,scalefactor):
-        for path in self.strokes:
-            for i in range(len(path)):
-                path[i][0] = path[i][0]*scalefactor
-                path[i][1] = path[i][1]*scalefactor
+                return self.strokes
+                self.strokes = []
 
     def scale_strokes(self):
         """scales the strokes to the page size"""
@@ -137,5 +119,5 @@ class PathDrawing():
 
 if __name__ == '__main__':
     drawing = PathDrawing()
-    drawing.scale_patch()
+    drawing.scale_patch(2,2)
     drawing.draw_strokes()
