@@ -7,8 +7,11 @@ import numpy as np
 import sys
 
 class EdgeDetector(object):
-    def __init__(self, image_path, canny_param1 = 100, canny_param2 = 200):
-        self.img = cv2.imread(image_path, 0)
+    def __init__(self, image_path=None, image=None, canny_param1 = 100, canny_param2 = 200):
+        if image != None:
+            self.img = image
+        else:
+            self.img = cv2.imread(image_path, 0)
         self.edges = cv2.Canny(self.img, canny_param1, canny_param2)
         self.contours, self.hierarchy = cv2.findContours(self.edges, cv2.RETR_TREE,
             cv2.CHAIN_APPROX_TC89_KCOS) #perhaps change this parameters?
