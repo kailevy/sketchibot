@@ -18,6 +18,7 @@ class ImageSearch(object):
         self.user_agent = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; FDM; .NET CLR 2.0.50727; InfoPath.2; .NET CLR 1.1.4322)'
 
     def make_request(self, query, top=5, offset=0, bw=True, drawing=True):
+        filters = ''
         if bw or drawing:
             filters = '%27&ImageFilters=%27'
         if bw:
@@ -39,8 +40,8 @@ class ImageSearch(object):
         result_list = json_result['d']['results']
         return [result['MediaUrl'] for result in result_list]
 
-    def find_image(self, query, num_result=10):
-        res = self.make_request(query, top=num_result)
+    def find_image(self, query, num_result=10, bw=True, drawing=True):
+        res = self.make_request(query, top=num_result, bw=bw, drawing=drawing)
         image = []
         for result in res:
             image.append(convert_to_opencv(get_image_from_url(result)))
@@ -68,7 +69,7 @@ if __name__ == '__main__':
     #
     # image = convert_to_opencv(get_image_from_url(results[0]))
 
-    images = searcher.find_image('cow')
+    images = searcher.find_image('cow', bw=True, drawing=True)
     cv2.imshow('aa', images[0])
     cv2.waitKey(0)
     cv2.imshow('aa', images[1])
