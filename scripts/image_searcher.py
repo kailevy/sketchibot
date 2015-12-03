@@ -39,9 +39,11 @@ class ImageSearch(object):
         result_list = json_result['d']['results']
         return [result['MediaUrl'] for result in result_list]
 
-    def find_image(self, query, num_result=0):
-        res = self.make_request(query, top=1, offset=num_result)[0]
-        image = convert_to_opencv(get_image_from_url(res))
+    def find_image(self, query, num_result=10):
+        res = self.make_request(query, top=num_result)
+        image = []
+        for result in res:
+            image.append(convert_to_opencv(get_image_from_url(result)))
         return image
 
 def get_image_from_url(url):
@@ -66,5 +68,12 @@ if __name__ == '__main__':
     #
     # image = convert_to_opencv(get_image_from_url(results[0]))
 
-    cv2.imshow('aa', searcher.find_image('cow'))
+    images = searcher.find_image('cow')
+    cv2.imshow('aa', images[0])
+    cv2.waitKey(0)
+    cv2.imshow('aa', images[1])
+    cv2.waitKey(0)
+    cv2.imshow('aa', images[2])
+    cv2.waitKey(0)
+    cv2.imshow('aa', images[3])
     cv2.waitKey(0)
