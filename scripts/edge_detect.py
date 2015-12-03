@@ -5,6 +5,7 @@
 import cv2
 import numpy as np
 import sys
+from image_searcher import ImageSearch
 
 class EdgeDetector(object):
     def __init__(self, image_path=None, image=None, canny_param1 = 100, canny_param2 = 200):
@@ -85,8 +86,10 @@ class EdgeDetector(object):
         return self.img.shape
 
 if __name__ == '__main__':
-    image = sys.argv[1]
-    det = EdgeDetector(image)
+    # image = sys.argv[1]
+    searcher = ImageSearch()
+    image = searcher.find_image('cow')[0]
+    det = EdgeDetector(image=image)
     det.reconstruct_contours()
     # det.display_image()
     # det.display_edges()
