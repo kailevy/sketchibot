@@ -9,7 +9,7 @@ from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion, Twist
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Header
+from std_msgs.msg import Header, String
 
 from edge_detect import *
 from screen_drawing_jay import *
@@ -39,19 +39,24 @@ class Sketchibot(object):
 
 		# Publishes directly to the navigation stack
 		self.pub_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+		self.pub_marker = rospy.Publisher('/servo_command', String, queue_size=10)
 
 		# Gets current position of the Neato
-		# rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.position_callback)
+		rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.position_callback)
 		rospy.Subscriber('/odom', Odometry, self.odom_callback)
 
 		# Transformation from map to base_link
-		# listener = tf.TransformListener()
-		# listener.waitForTransform('/map', '/base_link', rospy.Time(), rospy.Duration(3.0))
-		# (pos, rot) = listener.lookupTransform('/map', '/base_link', rospy.Time())
-		# initial_pose = convert_to_pose(pos, rot)
+		listener = tf.TransformListener()
+		listener.waitForTransform('/map', '/base_link', rospy.Time(), rospy.Duration(10.0))
+		(pos, rot) = listener.lookupTransform('/map', '/base_link', rospy.Time())
+		initial_pose = convert_to_pose(pos, rot)
+
+		self.initial_theta = None
+		self.initial_x = None
+		self.initial_y = None
 
 		# Initial, current, and final state variables of the Neato
-		self.x_0, self.y_0, self.th_0 = (0, 0, 0)#convert_pos_to_xy_and_theta(pose)
+		self.x_0, self.y_0, self.th_0 = convert_pose_to_xy_and_theta(initial_pose)
 		self.x,   self.y,   self.th   = (0, 0, 0)
 		self.x_f, self.y_f, self.th_f = (0, 0, 0)
 
@@ -60,12 +65,20 @@ class Sketchibot(object):
 	""" Callback function for Neato's current position """
 	def position_callback(self, msg):
 		pose = msg.pose.pose
-		# self.x, self.y = convert_pose_to_xy_and_theta(pose)[0:2]
+		self.x, self.y = convert_pose_to_xy_and_theta(pose)[0:2]
+		if self.initial_x == None and self.initial_y == None:
+			self.initial_x, self.initial_y = self.x, self.y
+		else:
+			self.x -= self.initial_x
+			self.y -= self.initial_y
 
 	""" Callback function for Neato's odometry reading """
 	def odom_callback(self, msg):
 		pose = msg.pose.pose
-		self.x, self.y, self.th = convert_pose_to_xy_and_theta(pose)
+		self.th = convert_pose_to_xy_and_theta(pose)[2]
+		if self.initial_theta == None:
+			self.initial_theta = self.th
+		else: self.th -= self.initial_theta
 
 	""" Publishes a waypoint to the Neato, with the map as the coordinate frame
 			pos - delta in translational motion
@@ -115,7 +128,7 @@ class Sketchibot(object):
 			K = 0.3  # Proportional control
 
 			vel = Twist()
-			vel.angular.z = K * th_error + 0.2 * np.sign(th_error)
+			vel.angular.z = K * th_error + 0.1 * np.sign(th_error)
 			self.pub_vel.publish(vel)
 
 	""" Calculates angle between two points """
@@ -125,9 +138,9 @@ class Sketchibot(object):
 	""" Gets a list of points to follow """
 	def get_contours(self):
 		drawing = PathDrawing()
-		drawing.scale_patch(2,2)
-		return drawing.draw_strokes()
-		# return [[np.array([0, 1], dtype=np.int32), np.array([1, 1], dtype=np.int32), np.array([2, 2], dtype=np.int32)]]
+		drawing.scale_patch(1, 1)
+		# return drawing.draw_strokes()
+		return [[np.array([0, 1], dtype=np.int32), np.array([1, 1], dtype=np.int32), np.array([2, 2], dtype=np.int32)]]
 
 	""" Main loop that sends velocity commands to the Neato """
 	def run(self):
@@ -142,10 +155,9 @@ class Sketchibot(object):
 				for j in i:
 					if first == True:
 						first = False
-						print "up"
-						pass # Publish marker to go up
+						self.pub_marker.publish('0')
 					else:
-						pass # Publish marker to go down
+						self.pub_marker.publish('1')
 					pos = [j[0], -j[1]]
 					rot = self.calc_theta(prev[0], prev[1], pos[0], pos[1])
 					print pos, rot
