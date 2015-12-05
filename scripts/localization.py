@@ -65,20 +65,25 @@ class Sketchibot(object):
 	""" Callback function for Neato's current position """
 	def position_callback(self, msg):
 		pose = msg.pose.pose
-		self.x, self.y = convert_pose_to_xy_and_theta(pose)[0:2]
+		x, y = convert_pose_to_xy_and_theta(pose)[0:2]
 		if self.initial_x == None and self.initial_y == None:
-			self.initial_x, self.initial_y = self.x, self.y
+			self.initial_x, self.initial_y = x, y
+			self.x = 0
+			self.y = 0
 		else:
-			self.x -= self.initial_x
-			self.y -= self.initial_y
+			dx = x - self.initial_x
+			dy = y - self.initial_y
+			dth = self.initial_theta
+			self.x = dx * np.sin(self.initial_theta) + dy * np.cos(self.initial_theta)
+			self.y = dx * np.cos(self.initial_theta) - dy * np.sin(self.initial_theta)
 
 	""" Callback function for Neato's odometry reading """
 	def odom_callback(self, msg):
 		pose = msg.pose.pose
-		self.th = convert_pose_to_xy_and_theta(pose)[2]
+		th = convert_pose_to_xy_and_theta(pose)[2]
 		if self.initial_theta == None:
-			self.initial_theta = self.th
-		else: self.th -= self.initial_theta
+			self.initial_theta = th
+		else: self.th = th - self.initial_theta
 
 	""" Publishes a waypoint to the Neato, with the map as the coordinate frame
 			pos - delta in translational motion
@@ -102,22 +107,24 @@ class Sketchibot(object):
 
 	""" Checks if the Neato has rotated towards the target goal """
 	def correct_heading(self):
-		return abs(self.th_f - self.th) < 0.02
+		return abs(self.th_f - self.th) < 0.02 or abs(abs(self.th_f - self.th) - 2*np.pi) < 0.02
 
 	""" Moves the Neato until it is at the waypoint """
 	def forwards_neato(self):
 		while not self.reached_goal():
-			self.th_f = self.calc_theta(self.x, self.y, self.x_f, self.y_f)
+			# print self.initial_x, self.initial_y, self.x, self.y, self.x_f, self.y_f, self.th, self.th_f
 
 			xy_error = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2)
-			th_error = self.th_f - self.th
-			print self.x, self.y, self.x_f, self.y_f
-			K_xy = 0.4  # Proportional control
-			K_th = 0.3
+			th_error = self.th - self.calc_theta(self.x, self.y, self.x_f, self.y_f)
+
+			print xy_error, th_error
+
+			K_xy = 0.1  # Proportional control
+			K_th = 0.1
 
 			vel = Twist()
 			vel.linear.x = K_xy * xy_error + 0.1
-			if xy_error > 0.1:
+			if xy_error > 0.2:
 				vel.angular.z = K_th * th_error
 			self.pub_vel.publish(vel)
 
@@ -160,7 +167,6 @@ class Sketchibot(object):
 						self.pub_marker.publish('1')
 					pos = [j[0], -j[1]]
 					rot = self.calc_theta(prev[0], prev[1], pos[0], pos[1])
-					print pos, rot
 
 					while not done:
 						self.push_waypoint(pos, rot)
