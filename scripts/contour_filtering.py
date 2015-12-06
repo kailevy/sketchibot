@@ -37,9 +37,9 @@ class ContourFiltering():
         print self.strokes
         self.point_filtering()
         #center contours
-        self.center_contours()
-        print 'Centered'
+        print 'filtered'
         print self.strokes
+        self.center_contours()
         self.plot_contours()
 
     def scale_strokes(self):
@@ -55,7 +55,6 @@ class ContourFiltering():
         for path in self.strokes:
             filtered_cpath = []
             i = 0
-            filtered_cpath.append(path[-1])
             while i < len(path) - 3:
                 j = i + 1
                 filtered_cpath.append(path[i])
@@ -70,7 +69,9 @@ class ContourFiltering():
                     distance = sqrt((path[i][0]-path[j][0])**2 + (path[i][1]-path[j][1])**2)
                     j += 1
                 i = j
+            filtered_cpath.append(path[-1])
             filtered_cpaths.append(filtered_cpath)
+
         self.strokes = filtered_cpaths
 
     def center_contours(self):
