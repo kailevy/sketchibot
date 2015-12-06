@@ -13,6 +13,7 @@ class PathDrawing():
         self.strokes = []
         self.drawing = False
         self.scale = 200.0
+        self.barcount = 0
 
     def scale_patch(self,x,y):
         """X and Y are in feet, scale is 1 meter to 200 pixels"""
@@ -57,17 +58,16 @@ class PathDrawing():
             key = cv2.waitKey(25)
             if key != -1 and chr(key) == ' ':
                 # if you hit space bar, you should reset the sketch on the left
-                #self.im1 =  255*np.ones(self.patch_size,dtype=np.uint8)
-                print self.strokes
+                #print self.strokes
                 self.scale_strokes()
-                print 'Scaled:'
+                #print 'Scaled:'
                 print self.strokes
                 print 'Filtered:'
                 self.point_filtering()
                 print self.strokes
                 self.plot_strokes()
                 self.strokes = []
-
+                
     def scale_strokes(self):
         """scales the strokes to the page size"""
         for path in self.strokes:
@@ -82,6 +82,7 @@ class PathDrawing():
         for path in self.strokes:
             filtered_cpath = []
             i = 0
+            filtered_cpath.append(path[-1])
             while i < len(path) - 3:
                 j = i + 1
                 filtered_cpath.append(path[i])
@@ -96,7 +97,6 @@ class PathDrawing():
                     distance = sqrt((path[i][0]-path[j][0])**2 + (path[i][1]-path[j][1])**2)
                     j += 1
                 i = j
-            filtered_cpath.append(path[-1])
             filtered_cpaths.append(filtered_cpath)
         self.strokes = filtered_cpaths  
 

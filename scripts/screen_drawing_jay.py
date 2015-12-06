@@ -119,5 +119,5 @@ class PathDrawing():
 
 if __name__ == '__main__':
     drawing = PathDrawing()
-    drawing.scale_patch(2,2)
+    drawing.scale_patch(1,1)
     drawing.draw_strokes()
