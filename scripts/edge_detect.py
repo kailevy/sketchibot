@@ -23,7 +23,7 @@ class EdgeDetector(object):
         """
         temp_contours = []
         for contour in self.contours:
-            temp_contours.append([vector[0] for vector in contour])
+            temp_contours.append([vector[0].astype('float') for vector in contour])
         self.contours = temp_contours
 
     def display_image(self):
@@ -41,11 +41,11 @@ class EdgeDetector(object):
         elif path == 'sorted':
             path = self.path
         for contour in path:
-            cv2.circle(im2,(contour[0][0],contour[0][1]),1,(255,255,255))
-            cv2.circle(im2,(contour[-1][0],contour[-1][1]),1,(255,255,255))
+            cv2.circle(im2,(int(contour[0][0]),int(contour[0][1])),1,(255,255,255))
+            cv2.circle(im2,(int(contour[-1][0]),int(contour[-1][1])),1,(255,255,255))
             for idx, point in enumerate(contour[0:-1]):
-                p1 = (contour[idx][0], contour[idx][1])
-                p2 = (contour[idx+1][0], contour[idx+1][1])
+                p1 = (int(contour[idx][0]), int(contour[idx][1]))
+                p2 = (int(contour[idx+1][0]), int(contour[idx+1][1]))
                 cv2.arrowedLine(im2, p1, p2, (255,255,255))
                 cv2.imshow('contours', im2)
                 cv2.waitKey(1)
@@ -86,15 +86,16 @@ class EdgeDetector(object):
         return self.img.shape
 
 if __name__ == '__main__':
-    # image = sys.argv[1]
-    searcher = ImageSearch()
-    image = searcher.find_image('cow')[0]
-    det = EdgeDetector(image=image)
+    image = sys.argv[1]
+    # searcher = ImageSearch()
+    # image = searcher.find_image('cow')[0]
+    det = EdgeDetector(image_path=image)
     det.reconstruct_contours()
     # det.display_image()
     # det.display_edges()
     det.sort_contours()
-    det.animate_contours()
+    # det.animate_contours()
     det.animate_contours('sorted')
     strokes = det.get_contours()
+    print strokes
     size = det.get_size()
