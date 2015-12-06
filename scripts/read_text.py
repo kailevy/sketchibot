@@ -67,7 +67,8 @@ class TextReader(object):
             if (self.readings[self.index] != ''
             and streak_start == self.index):
                 decided = True
-                return (self.readings[self.index], speller.suggest(self.readings[self.index])[0])
+                suggestion = ''.join([speller.suggest(word)[0] for word in self.readings[self.index].split()])
+                return (self.readings[self.index], suggestion)
             elif (self.readings[self.index] == ''
             or self.readings[self.index] != self.readings[self.index-1]):
                 streak_start = -1
