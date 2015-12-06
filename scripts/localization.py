@@ -14,6 +14,9 @@ from std_msgs.msg import Header, String
 from edge_detect import *
 from screen_drawing_jay import *
 
+VEL_ANGULAR_LIM = 0.15
+VEL_LINEAR_LIM = 0.1
+
 """ Converts a translation and rotation component to a Pose object """
 def convert_to_pose(translation, rotation):
 	return Pose(position=Point(x=translation[0],
@@ -36,27 +39,16 @@ class Sketchibot(object):
 	""" Initialzies important variables and nodes """
 	def __init__(self):
 		rospy.init_node('sketchibot')
-
+ 
 		# Publishes directly to the navigation stack
 		self.pub_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 		self.pub_marker = rospy.Publisher('/servo_command', String, queue_size=10)
 
 		# Gets current position of the Neato
-		rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.position_callback)
+		rospy.Subscriber('/poseupdate', PoseWithCovarianceStamped, self.position_callback)
 		rospy.Subscriber('/odom', Odometry, self.odom_callback)
 
-		# Transformation from map to base_link
-		listener = tf.TransformListener()
-		listener.waitForTransform('/map', '/base_link', rospy.Time(), rospy.Duration(10.0))
-		(pos, rot) = listener.lookupTransform('/map', '/base_link', rospy.Time())
-		initial_pose = convert_to_pose(pos, rot)
-
-		self.initial_theta = None
-		self.initial_x = None
-		self.initial_y = None
-
-		# Initial, current, and final state variables of the Neato
-		self.x_0, self.y_0, self.th_0 = convert_pose_to_xy_and_theta(initial_pose)
+		# Current and final state variables of the Neato
 		self.x,   self.y,   self.th   = (0, 0, 0)
 		self.x_f, self.y_f, self.th_f = (0, 0, 0)
 
@@ -65,25 +57,15 @@ class Sketchibot(object):
 	""" Callback function for Neato's current position """
 	def position_callback(self, msg):
 		pose = msg.pose.pose
-		x, y = convert_pose_to_xy_and_theta(pose)[0:2]
-		if self.initial_x == None and self.initial_y == None:
-			self.initial_x, self.initial_y = x, y
-			self.x = 0
-			self.y = 0
-		else:
-			dx = x - self.initial_x
-			dy = y - self.initial_y
-			dth = self.initial_theta
-			self.x = dx * np.sin(self.initial_theta) + dy * np.cos(self.initial_theta)
-			self.y = dx * np.cos(self.initial_theta) - dy * np.sin(self.initial_theta)
+		self.x, self.y, self.th = convert_pose_to_xy_and_theta(pose)
 
 	""" Callback function for Neato's odometry reading """
 	def odom_callback(self, msg):
 		pose = msg.pose.pose
-		th = convert_pose_to_xy_and_theta(pose)[2]
-		if self.initial_theta == None:
-			self.initial_theta = th
-		else: self.th = th - self.initial_theta
+		# th = convert_pose_to_xy_and_theta(pose)[2]
+		# if self.initial_theta == None:
+		# 	self.initial_theta = th
+		# else: self.th = th - self.initial_theta
 
 	""" Publishes a waypoint to the Neato, with the map as the coordinate frame
 			pos - delta in translational motion
@@ -107,36 +89,65 @@ class Sketchibot(object):
 
 	""" Checks if the Neato has rotated towards the target goal """
 	def correct_heading(self):
-		return abs(self.th_f - self.th) < 0.02 or abs(abs(self.th_f - self.th) - 2*np.pi) < 0.02
+		return abs(self.th_f - self.th) < 0.05 or abs(abs(self.th_f - self.th) - 2*np.pi) < 0.05
 
 	""" Moves the Neato until it is at the waypoint """
 	def forwards_neato(self):
 		while not self.reached_goal():
+			if not self.correct_heading():
+				self.rotate_neato()
 			# print self.initial_x, self.initial_y, self.x, self.y, self.x_f, self.y_f, self.th, self.th_f
+			self.th_f = self.calc_theta(self.x, self.y, self.x_f, self.y_f)
 
 			xy_error = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2)
-			th_error = self.th - self.calc_theta(self.x, self.y, self.x_f, self.y_f)
-
-			print xy_error, th_error
+			th_error = self.calc_th_error()
 
 			K_xy = 0.1  # Proportional control
 			K_th = 0.1
 
 			vel = Twist()
-			vel.linear.x = K_xy * xy_error + 0.1
-			if xy_error > 0.2:
-				vel.angular.z = K_th * th_error
+			vel.linear.x = min(K_xy * xy_error + 0.1, VEL_LINEAR_LIM)
+			omega = K_th * th_error + 0.1 * np.sign(th_error)
+			if omega < -VEL_ANGULAR_LIM*2:
+				omega = -VEL_ANGULAR_LIM*2
+			elif omega > VEL_ANGULAR_LIM*2:
+				omega = VEL_ANGULAR_LIM*2
+			vel.angular.z = omega
+
 			self.pub_vel.publish(vel)
 
 	""" Rotates the Neato until its heading is correct """
 	def rotate_neato(self):
 		while not self.correct_heading():
-			th_error = self.th_f - self.th
+			dist = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2)
+			if dist < 0.075:
+				return
+
+			th_error = self.calc_th_error()
 			K = 0.3  # Proportional control
 
 			vel = Twist()
-			vel.angular.z = K * th_error + 0.1 * np.sign(th_error)
+			omega = K * th_error + 0.1 * np.sign(th_error)
+			if omega < -VEL_ANGULAR_LIM:
+				omega = -VEL_ANGULAR_LIM
+			elif omega > VEL_ANGULAR_LIM:
+				omega = VEL_ANGULAR_LIM
+			vel.angular.z = omega
 			self.pub_vel.publish(vel)
+
+	""" Calculates the th_error, accounts for wrapping effect """
+	def calc_th_error(self):
+			th_error1 = self.th_f - self.th
+			th_error2 = self.th_f - self.th - 2*np.pi
+			th_error3 = self.th_f - self.th + 2*np.pi
+			mag1, mag2, mag3 = abs(th_error1), abs(th_error2), abs(th_error3)
+			min_mag = min(mag1, mag2, mag3)
+
+			if min_mag == mag1:
+				return th_error1
+			elif min_mag == mag2 or min_mag == mag3:
+				return -th_error1
+
 
 	""" Calculates angle between two points """
 	def calc_theta(self, x1, y1, x2, y2):
@@ -146,13 +157,11 @@ class Sketchibot(object):
 	def get_contours(self):
 		drawing = PathDrawing()
 		drawing.scale_patch(1, 1)
-		# return drawing.draw_strokes()
-		return [[np.array([0, 1], dtype=np.int32), np.array([1, 1], dtype=np.int32), np.array([2, 2], dtype=np.int32)]]
+		return drawing.draw_strokes()
 
 	""" Main loop that sends velocity commands to the Neato """
 	def run(self):
 		self.contours = self.get_contours()
-		done = False
 		first = True
 		prev = [0, 0]
 
@@ -168,15 +177,12 @@ class Sketchibot(object):
 					pos = [j[0], -j[1]]
 					rot = self.calc_theta(prev[0], prev[1], pos[0], pos[1])
 
-					while not done:
-						self.push_waypoint(pos, rot)
-						done = self.reached_goal()
-
-						if done:
-							self.th_0 = self.th_f
-							prev = pos
-					done = not(done)
+					self.push_waypoint(pos, rot)
+					prev = pos
+				print "contour"
 				first = True # Marker should be up when going to the first point of each new contour
+
+		self.pub_vel.publish(Twist())
 
 if __name__ == '__main__':
 	node = Sketchibot()
