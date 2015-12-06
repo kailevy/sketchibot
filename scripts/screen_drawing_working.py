@@ -61,7 +61,7 @@ class PathDrawing():
                 #print self.strokes
                 self.scale_strokes()
                 #print 'Scaled:'
-                #print self.strokes
+                print self.strokes
                 print 'Filtered:'
                 self.point_filtering()
                 print self.strokes
