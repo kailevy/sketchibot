@@ -43,7 +43,7 @@ After the sorting is performed, the list of strokes gets sent to a waypoint filt
 
 To determine the scaling factor, the method looks as the aspect ratio of the image and of the page, and then scales the image so that it will fit within the limits of the page, with some margin. Once all of the contours are the right units, they get filtered based on how accurate we want the Neato to be. The code looks through each point in each stroke, and for each set of two eliminates points that are under a certain distance apart. For each set of three, it calculates the angle the three make and eliminates the middle point if the angle is within a certain range of 180 degrees. The function performs both of these filtration methods simultaneously with the "and" boolean operator, so if there are three points that form a sharp angle but are within the minimum distance, the middle point stays because the angle is sharp enough to make a difference although the distance is not. Using this method, we can filter our waypoints down but still keep the drawing recognizeable.
 
-![The filtered contours of the cow!](../images/cow_contours.png)  |  ![The waypoints of the cow!](../images/cow_waypoints.png)
+![The filtered contours of the cow!](../images/cow_contours.png) ![The waypoints of the cow!](../images/cow_waypoints.png)
 
 
 Once the filtration is done, the script centers the drawing in the center of the page before sending the waypoint coordinates off to the Neato so that it can actually draw out the strokes.
