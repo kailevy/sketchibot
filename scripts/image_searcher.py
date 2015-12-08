@@ -20,8 +20,10 @@ class ImageSearch(object):
         self.root_url = "https://api.datamarket.azure.com/Bing/Search"
         self.user_agent = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; FDM; .NET CLR 2.0.50727; InfoPath.2; .NET CLR 1.1.4322)'
 
-    def make_request(self, query, top=5, offset=0, filters=[]):
+    def make_request(self, query, top=5, offset=0, filters=[], clipart=True):
         filter_str = '%27&ImageFilters=%27'+'%2b'.join(filters)
+        if clipart:
+            query = query + ' clip art'
         query = urllib2.quote(query)
         url = self.root_url + '/Image?' + \
             'Query=%27' + query + filter_str + '%27&$top=' + str(top) + '&$skip=' + str(offset) + '&$format=json'
@@ -64,7 +66,7 @@ if __name__ == '__main__':
     #
     # image = convert_to_opencv(get_image_from_url(results[0]))
 
-    images = searcher.find_image('cow', filters=[MEDIUM,BW,DRAWING])
+    images = searcher.find_image('cow', filters=[MEDIUM, DRAWING])
     cv2.imshow('aa', images[0])
     cv2.waitKey(0)
     cv2.imshow('aa', images[1])
