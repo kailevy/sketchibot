@@ -45,7 +45,6 @@ To determine the scaling factor, the method looks as the aspect ratio of the ima
 
 ![The filtered contours of the cow!](../images/cow_contours.png) ![The waypoints of the cow!](../images/cow_waypoints.png)
 
-
 Once the filtration is done, the script centers the drawing in the center of the page before sending the waypoint coordinates off to the Neato so that it can actually draw out the strokes.
  
 ### Path Planning
