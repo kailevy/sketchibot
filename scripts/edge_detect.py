@@ -8,12 +8,14 @@ import sys
 from image_searcher import ImageSearch
 
 class EdgeDetector(object):
-    def __init__(self, image_path=None, image=None, canny_param1 = 100, canny_param2 = 200):
+    def __init__(self, image_path=None, image=None):
         if image != None:
             self.img = image
         else:
             self.img = cv2.imread(image_path, 0)
-        self.edges = cv2.Canny(self.img, canny_param1, canny_param2)
+        high_thresh, thresh_im = cv2.threshold(self.img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        low_thresh = 0.5*high_thresh
+        self.edges = cv2.Canny(self.img, low_thresh, high_thresh)
         self.contours, self.hierarchy = cv2.findContours(self.edges, cv2.RETR_TREE,
             cv2.CHAIN_APPROX_TC89_KCOS) #perhaps change this parameters?
 
@@ -62,7 +64,7 @@ class EdgeDetector(object):
                     tmp.append([index2, np.linalg.norm(end-l2[0])])
             self.distances[index] = tmp
 
-    def sort_contours(self, start=0):
+    def sort_contours(self, start_point=(0,0)):
         """
         Calculates path through all strokes by using min distance approach to TSP (not most efficient)
         Goes to the closest stroke from each one
@@ -70,6 +72,7 @@ class EdgeDetector(object):
         unvisited = {}
         for index, contour in enumerate(self.contours):
             unvisited[index] = contour
+        start = min(unvisited, key=lambda x: np.linalg.norm(start_point-unvisited[x][0]))
         path = [unvisited[start]]
         unvisited.pop(start, None)
         while unvisited:
@@ -92,10 +95,10 @@ if __name__ == '__main__':
     det = EdgeDetector(image_path=image)
     det.reconstruct_contours()
     # det.display_image()
-    # det.display_edges()
+    det.display_edges()
     det.sort_contours()
     # det.animate_contours()
     det.animate_contours('sorted')
     strokes = det.get_contours()
-    print strokes
+    # print strokes
     size = det.get_size()
