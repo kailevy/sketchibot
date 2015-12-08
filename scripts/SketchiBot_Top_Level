@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+#input: page read
+
+#size tesseract text
+
+#search image
+
+#download image
+
+#run contour filtering
+
+#if image is less than certain # of waypoints, roll with it
+
+#if not, choose next image
+
+#send waypoints to neato

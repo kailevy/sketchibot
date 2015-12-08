@@ -1,4 +1,4 @@
-# SketchiBot: Current Progress
+# SketchiBot: Progress Report 1
 #### Comp Robo Fall 2015
 #### Alex Crease, Jay Woo, Kai Levy
 
