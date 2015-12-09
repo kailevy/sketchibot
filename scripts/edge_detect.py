@@ -6,6 +6,8 @@ import cv2
 import numpy as np
 import sys
 from image_searcher import ImageSearch
+from scipy.linalg import norm
+from scipy import sum, average
 
 class EdgeDetector(object):
     def __init__(self, image_path=None, image=None):
@@ -18,6 +20,7 @@ class EdgeDetector(object):
         self.edges = cv2.Canny(self.img, low_thresh, high_thresh)
         self.contours, self.hierarchy = cv2.findContours(self.edges, cv2.RETR_TREE,
             cv2.CHAIN_APPROX_TC89_KCOS) #perhaps change this parameters?
+        self.edges = cv2.Canny(self.img, low_thresh, high_thresh)
 
     def reconstruct_contours(self):
         """
@@ -25,7 +28,8 @@ class EdgeDetector(object):
         """
         temp_contours = []
         for contour in self.contours:
-            temp_contours.append([vector[0].astype('float') for vector in contour])
+            if cv2.contourArea(contour, True) <= 0:
+                temp_contours.append([vector[0].astype('float') for vector in contour])
         self.contours = temp_contours
 
     def display_image(self):
@@ -37,19 +41,19 @@ class EdgeDetector(object):
         cv2.waitKey(0)
 
     def animate_contours(self, path='default'):
-        im2 = np.zeros(self.img.shape)
+        self.im2 = np.zeros(self.img.shape)
         if path == 'default':
             path = self.contours
         elif path == 'sorted':
             path = self.path
         for contour in path:
-            cv2.circle(im2,(int(contour[0][0]),int(contour[0][1])),1,(255,255,255))
-            cv2.circle(im2,(int(contour[-1][0]),int(contour[-1][1])),1,(255,255,255))
+            # cv2.circle(self.im2,(int(contour[0][0]),int(contour[0][1])),1,(255,255,255))
+            # cv2.circle(self.im2,(int(contour[-1][0]),int(contour[-1][1])),1,(255,255,255))
             for idx, point in enumerate(contour[0:-1]):
                 p1 = (int(contour[idx][0]), int(contour[idx][1]))
                 p2 = (int(contour[idx+1][0]), int(contour[idx+1][1]))
-                cv2.arrowedLine(im2, p1, p2, (255,255,255))
-                cv2.imshow('contours', im2)
+                cv2.line(self.im2, p1, p2, (255,255,255))
+                cv2.imshow('contours', self.im2)
                 cv2.waitKey(1)
         cv2.waitKey(0)
 
@@ -88,17 +92,38 @@ class EdgeDetector(object):
     def get_size(self):
         return self.img.shape
 
+def compare_images(img1, img2):
+    """
+    helper function from:
+    http://stackoverflow.com/questions/189943/how-can-i-quantify-difference-between-two-images
+    """
+    # normalize to compensate for exposure difference, this may be unnecessary
+    # consider disabling it
+    # calculate the difference and its norms
+    diff = (img1) - (img2)  # elementwise for scipy arrays
+    z_norm = norm(diff.ravel(), 1)  # one norm
+    return z_norm
+
+def normalize(arr):
+    """
+    normalize the image array by taking (each element - mean) / standard dev
+    """
+    arr_mean = arr.mean()
+    std_dev = arr.std()
+    return (arr - arr_mean) / std_dev
+
 if __name__ == '__main__':
     image = sys.argv[1]
     # searcher = ImageSearch()
     # image = searcher.find_image('cow')[0]
     det = EdgeDetector(image_path=image)
     det.reconstruct_contours()
-    # det.display_image()
-    det.display_edges()
     det.sort_contours()
+    # det.display_image()
+    # det.display_edges()
     # det.animate_contours()
-    det.animate_contours('sorted')
+    # det.animate_contours('sorted')
+    # print compare_images(det.edges, det.im2)
     strokes = det.get_contours()
     # print strokes
     size = det.get_size()
