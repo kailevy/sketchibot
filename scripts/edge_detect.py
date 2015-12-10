@@ -17,9 +17,8 @@ class EdgeDetector(object):
             self.img = cv2.imread(image_path, 0)
         high_thresh, thresh_im = cv2.threshold(self.img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         low_thresh = 0.5*high_thresh
-        self.edges = cv2.Canny(self.img, low_thresh, high_thresh)
-        self.contours, self.hierarchy = cv2.findContours(self.edges, cv2.RETR_TREE,
-            cv2.CHAIN_APPROX_TC89_KCOS) #perhaps change this parameters?
+        edges = cv2.Canny(self.img, low_thresh, high_thresh)
+        self.contours, self.hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS) #perhaps change this parameters?
         self.edges = cv2.Canny(self.img, low_thresh, high_thresh)
 
     def reconstruct_contours(self):
@@ -52,7 +51,7 @@ class EdgeDetector(object):
             for idx, point in enumerate(contour[0:-1]):
                 p1 = (int(contour[idx][0]), int(contour[idx][1]))
                 p2 = (int(contour[idx+1][0]), int(contour[idx+1][1]))
-                cv2.line(self.im2, p1, p2, (255,255,255))
+                cv2.arrowedLine(self.im2, p1, p2, (255,255,255))
                 cv2.imshow('contours', self.im2)
                 cv2.waitKey(1)
         cv2.waitKey(0)
@@ -119,10 +118,10 @@ if __name__ == '__main__':
     det = EdgeDetector(image_path=image)
     det.reconstruct_contours()
     det.sort_contours()
-    # det.display_image()
-    # det.display_edges()
+    det.display_image()
+    det.display_edges()
     # det.animate_contours()
-    # det.animate_contours('sorted')
+    det.animate_contours('sorted')
     # print compare_images(det.edges, det.im2)
     strokes = det.get_contours()
     # print strokes
