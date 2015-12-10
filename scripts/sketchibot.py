@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
-from read_text import TextReader
-from image_searcher import ImageSearch
+from text_read import TextReader
+from image_searcher import ImageSearcher
 from edge_detect import EdgeDetector
 from contour_filtering import ContourFiltering
 from localization import Sketchibot

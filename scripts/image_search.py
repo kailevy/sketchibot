@@ -12,7 +12,7 @@ BW = 'Color%3aMonochrome'
 DRAWING = 'Style%3aGraphics'
 MEDIUM = 'Size%3aMedium'
 
-class ImageSearch(object):
+class ImageSearcher(object):
 
     def __init__(self):
         credentials = (':%s' % ACCOUNT_KEY).encode('base64')[:-1]
@@ -59,7 +59,7 @@ def convert_to_opencv(image):
 
 
 if __name__ == '__main__':
-    searcher = ImageSearch()
+    searcher = ImageSearcher()
     # results = searcher.make_request('cow',top=2,offset=3)
     #
     # print results
