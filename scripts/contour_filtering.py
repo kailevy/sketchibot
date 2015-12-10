@@ -11,7 +11,7 @@ from edge_detect import EdgeDetector
 class ContourFiltering():
     """Inputs an array of points from a contour, image size, and size of the paper
     contains functions that output a filtered array of waypoints scaled to the appropriate page size"""
-    def __init__(self, strokes = [],imsize=(1,1),pagesize=(1,1)):
+    def __init__(self, strokes = [],imsize=(1,1),pagesize=(2,2)):
         """inputs should be from Edge Detector
         strokes: list of strokes, where each stroke is a list of (x,y) points from edge detection
         imsize: size of the image used to make the strokes
@@ -33,10 +33,10 @@ class ContourFiltering():
         so that the image will fit inside the page no matter which side is bigger"""
         if imrat < pagerat:
         #if the image ratio is smaller than the page ratio, scale to height of page, with some wiggle room
-            self.scalefactor = (self.pagey/self.imx)*.9
+            self.scalefactor = (self.pagey/self.imx)*.5
         else:
          #if the image ratio is smaller than the page ratio, scale to width of page, with some wiggle room
-            self.scalefactor = (self.pagex/self.imy)*.9
+            self.scalefactor = (self.pagex/self.imy)*.5
 
         #print self.scalefactor
 
@@ -148,7 +148,7 @@ class ContourFiltering():
 
 if __name__ == '__main__':
     #edge detection stuff
-    detector = EdgeDetector(image_path="../images/paul2.jpg") #creates edge detection class
+    detector = EdgeDetector(image_path="../images/cow.png") #creates edge detection class
     detector.reconstruct_contours()     #makes contours
     detector.sort_contours()            #sorts them to make the Neato's job easier
     contours = detector.get_contours()  #actually gets image contours

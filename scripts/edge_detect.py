@@ -91,6 +91,7 @@ class EdgeDetector(object):
     def get_size(self):
         return self.img.shape
 
+<<<<<<< Updated upstream
 def compare_images(img1, img2):
     """
     helper function from:
