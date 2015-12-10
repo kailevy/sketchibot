@@ -158,4 +158,4 @@ if __name__ == '__main__':
     waypts = drawing.get_number_of_waypoints()  #gets number of waypoints
     print waypts                                #prints number of waypoints
     strokes = drawing.get_strokes()             #returns strokes
-    drawing.plot_contours()                     #plots contours
+    drawing.plot_points()                     #plots contours
