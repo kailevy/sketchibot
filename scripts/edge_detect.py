@@ -92,6 +92,7 @@ class EdgeDetector(object):
     def get_size(self):
         return self.img.shape
 
+<<<<<<< Updated upstream
 def compare_images(img1, img2):
     """
     helper function from:
@@ -127,3 +128,19 @@ if __name__ == '__main__':
     strokes = det.get_contours()
     # print strokes
     size = det.get_size()
+=======
+# if __name__ == '__main__':
+#     image = sys.argv[1]
+#     # searcher = ImageSearch()
+#     # image = searcher.find_image('cow')[0]
+#     det = EdgeDetector(image_path=image)
+#     det.reconstruct_contours()
+#     # det.display_image()
+#     # det.display_edges()
+#     det.sort_contours()
+#     # det.animate_contours()
+#     det.animate_contours('sorted')
+#     strokes = det.get_contours()
+#     print strokes
+#     size = det.get_size()
+>>>>>>> Stashed changes
