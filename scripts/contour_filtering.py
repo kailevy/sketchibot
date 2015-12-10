@@ -33,10 +33,10 @@ class ContourFiltering():
         so that the image will fit inside the page no matter which side is bigger"""
         if imrat < pagerat:
         #if the image ratio is smaller than the page ratio, scale to height of page, with some wiggle room
-            self.scalefactor = (self.pagey/self.imx)*.5
+            self.scalefactor = (self.pagey/self.imx)*.75
         else:
          #if the image ratio is smaller than the page ratio, scale to width of page, with some wiggle room
-            self.scalefactor = (self.pagex/self.imy)*.5
+            self.scalefactor = (self.pagex/self.imy)*.75
 
         #print self.scalefactor
 
@@ -63,7 +63,7 @@ class ContourFiltering():
         """filters points based on angle and distance thresholds"""
         filtered_cpaths = [] #creates new list of filtered paths
         threshold = .2  #minimum distance between two points
-        angle_thresh = 20 #minimum angle between three points
+        angle_thresh = 30.0 #minimum angle between three points
         for path in self.strokes:
             #loops through paths and filters them
             filtered_cpath = [] #creates new filtered path
@@ -79,7 +79,7 @@ class ContourFiltering():
                     radangle1 = atan2(path[j][1]-path[i][1],path[j][0]-path[i][0])  #angle between first 2 points and 0
                     radangle2 = atan2(path[j+1][1]-path[j][1],path[j+1][0]-path[j][0]) #angle between second 2 points and 0
                     #convert angles to degrees
-                    angle1 = radangle1*180.0/pi 
+                    angle1 = radangle1*180.0/pi
                     angle2 = radangle2*180.0/pi
                     anglediff = abs(angle2-angle1) #calculates difference between angles
                     distance = sqrt((path[i][0]-path[j][0])**2 + (path[i][1]-path[j][1])**2) #calculates distance between two points
@@ -148,12 +148,12 @@ class ContourFiltering():
 
 if __name__ == '__main__':
     #edge detection stuff
-    detector = EdgeDetector(image_path="../images/checkbox.jpeg") #creates edge detection class
+    detector = EdgeDetector(image_path="../images/cow.png") #creates edge detection class
     detector.reconstruct_contours()     #makes contours
     detector.sort_contours()            #sorts them to make the Neato's job easier
     contours = detector.get_contours()  #actually gets image contours
     size = detector.get_size()          #gets size of image
-    drawing = ContourFiltering(strokes = contours,imsize=size,pagesize=(2,4)) #creates contour filtering class 
+    drawing = ContourFiltering(strokes = contours,imsize=size) #creates contour filtering class 
     drawing.run_filter()                #runs filtering and centering methods on contours
     waypts = drawing.get_number_of_waypoints()  #gets number of waypoints
     print waypts                                #prints number of waypoints
