@@ -20,13 +20,13 @@ class ImageSearch(object):
         self.root_url = "https://api.datamarket.azure.com/Bing/Search"
         self.user_agent = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; FDM; .NET CLR 2.0.50727; InfoPath.2; .NET CLR 1.1.4322)'
 
-    def make_request(self, query, top=5, offset=0, filters=[], clipart=True):
+    def make_request(self, query, top=5, skip=0, filters=[], clipart=True):
         filter_str = '%27&ImageFilters=%27'+'%2b'.join(filters)
         if clipart:
             query = query + ' clip art'
         query = urllib2.quote(query)
         url = self.root_url + '/Image?' + \
-            'Query=%27' + query + filter_str + '%27&$top=' + str(top) + '&$skip=' + str(offset) + '&$format=json'
+            'Query=%27' + query + filter_str + '%27&$top=' + str(top) + '&$skip=' + str(skip) + '&$format=json'
         request = urllib2.Request(url)
         request.add_header('Authorization', self.auth)
         request.add_header('User-Agent', self.user_agent)
@@ -37,8 +37,8 @@ class ImageSearch(object):
         result_list = json_result['d']['results']
         return [result['MediaUrl'] for result in result_list]
 
-    def find_image(self, query, num_result=10, filters=[]):
-        res = self.make_request(query, filters=filters)
+    def find_image(self, query, top=10, skip=0, filters=[], clipart=True):
+        res = self.make_request(query, top=top, skip=skip, filters=filters, clipart=clipart)
         image = []
         for result in res:
             image.append(convert_to_opencv(get_image_from_url(result)))
@@ -67,11 +67,7 @@ if __name__ == '__main__':
     # image = convert_to_opencv(get_image_from_url(results[0]))
 
     images = searcher.find_image('cow', filters=[MEDIUM, DRAWING])
-    cv2.imshow('aa', images[0])
-    cv2.waitKey(0)
-    cv2.imshow('aa', images[1])
-    cv2.waitKey(0)
-    cv2.imshow('aa', images[2])
-    cv2.waitKey(0)
-    cv2.imshow('aa', images[3])
-    cv2.waitKey(0)
+    # cv2.imshow('aa', images[2])
+    # cv2.waitKey(0)
+    # cv2.imshow('aa', images[3])
+    # cv2.waitKey(0)
