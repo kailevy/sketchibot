@@ -148,7 +148,7 @@ class ContourFiltering():
 
 if __name__ == '__main__':
     #edge detection stuff
-    detector = EdgeDetector(image_path="../images/cow.png") #creates edge detection class
+    detector = EdgeDetector(image_path="../images/checkbox.jpeg") #creates edge detection class
     detector.reconstruct_contours()     #makes contours
     detector.sort_contours()            #sorts them to make the Neato's job easier
     contours = detector.get_contours()  #actually gets image contours
