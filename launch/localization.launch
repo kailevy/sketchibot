@@ -1,5 +1,5 @@
 <launch>
 	<include file="$(find neato_2dnav)/launch/gmapping_demo.launch" />
 	<node name="map_transform" pkg="sketchibot" type="map_transform.py" />
-	<node name="localization" pkg="sketchibot" type="localization.py" />
+	<node name="localization" pkg="sketchibot" type="localization.py" output="log"/>
 </launch>
