@@ -52,7 +52,7 @@ Once the filtration is done, the script centers the drawing in the center of the
 ### Path Planning
 Localization and path planning has changed quite a bit from the previous rendition in that waypoints are no longer published to the /move_base node. Instead, the Neato localizes itself using the gmapping SLAM algorithm and manually travels to waypoints in each contour. After receiving the filtered list of waypoints, the Neato rotates itself until it is facing the new waypoint. Then, it moves forwards with proportional linear and angular velocity control until it gets within a certain distance from the target. This process is repeated for each point in the list. The pen attached to the servo moves up after completing a contour and moves down again when a new contour is being drawn.
 
-![The Neato's attempt at drawing a cow!](../images/IMG_4492.JPG)
+<img src="../images/IMG_4492.JPG" alt="The Neato's attempt at drawing a cow!" width="450">
 
 The result in the above image was from a previous version of the code that used Hector SLAM, which ended up being fairly inaccurate for position data. With gmapping, we will hopefully be able to drive the Neato at higher velocities, without sacrificing too much accuracy, and we will soon be testing out this new version of the code to see if the path planning runs smoothly!
 
