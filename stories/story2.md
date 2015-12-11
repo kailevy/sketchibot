@@ -50,8 +50,14 @@ To determine the scaling factor, the method looks as the aspect ratio of the ima
 Once the filtration is done, the script centers the drawing in the center of the page before sending the waypoint coordinates off to the Neato so that it can actually draw out the strokes.
 
 ### Path Planning
+Localization and path planning has changed quite a bit from the previous rendition in that waypoints are no longer published to the /move_base node. Instead, the Neato localizes itself using the gmapping SLAM algorithm and manually travels to waypoints in each contour. After receiving the filtered list of waypoints, the Neato rotates itself until it is facing the new waypoint. Then, it moves forwards with proportional linear and angular velocity control until it gets within a certain distance from the target. This process is repeated for each point in the list. The pen attached to the servo moves up after completing a contour and moves down again when a new contour is being drawn.
 
+![The Neato's attempt at drawing a cow!](../images/IMG_4492.JPG)
+
+The result in the above image was from a previous version of the code that used Hector SLAM, which ended up being fairly inaccurate for position data. With gmapping, we will hopefully be able to drive the Neato at higher velocities, without sacrificing too much accuracy, and we will soon be testing out this new version of the code to see if the path planning runs smoothly!
 
 ### Integration
+In addition to developing these major components, we also worked on getting the pieces integrated into a cohesive system. We now have an overarching file called sketchibot.py that calls functions and instantiates objects from other files, and as a result, everything now flows in a very linear fashion. Though there are couple of kinks that need to be worked out to get everything running properly, we mainly need to run a couple of tests by having the Neato draw something.
 
 ## Decisions Going Forward
+Given the limited time window we have left, we don't have too many major plans moving forwards. If the integration gets finished soon, and everything runs smoothly, we could potentially focus on understanding some of the inner workings of the packages that we are using for our project, including gmapping and Tesseract. Overall, we think we're making some great progress!
