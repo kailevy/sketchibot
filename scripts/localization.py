@@ -50,7 +50,7 @@ class Sketchibot(object):
         # Gets current position of the Neato
         rospy.Subscriber('/position', PoseStamped, self.position_callback)
 
-        self.page_size = (1.5,1.5)
+        self.page_size = (1.25, 1.25)
 
         # Current and final state variables of the Neato
         self.x,   self.y,   self.th   = (0, 0, 0)
@@ -108,19 +108,25 @@ class Sketchibot(object):
             xy_error = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2)
             th_error = self.calc_th_error()
 
-            K_xy = 0.3  # Proportional control
-            K_th = 0.1
+            P_xy = 0.3  # Proportional control
+            P_th = 0.1
+            D_xy = 0.01 # Derivative control
+            time = rospy.get_rostime()
 
             vel = Twist()
-            vel.linear.x = min(K_xy * xy_error + 0.05, VEL_LINEAR_LIM)
-            omega = K_th * th_error #+ 0.1 * np.sign(th_error)
-            if omega < -VEL_ANGULAR_LIM*2:
-                omega = -VEL_ANGULAR_LIM*2
-            elif omega > VEL_ANGULAR_LIM*2:
-                omega = VEL_ANGULAR_LIM*2
+            vel_x = P_xy * xy_error + D_xy * (xy_error - self.prev_xy_error) / (time - self.prev_time)
+            vel.linear.x = min(vel_x, VEL_LINEAR_LIM)
+            omega = P_th * th_error #+ 0.1 * np.sign(th_error)
+            if omega < -VEL_ANGULAR_LIM*3:
+                omega = -VEL_ANGULAR_LIM*3
+            elif omega > VEL_ANGULAR_LIM*3:
+                omega = VEL_ANGULAR_LIM*3
             vel.angular.z = omega
 
             self.pub_vel.publish(vel)
+
+            self.prev_xy_error = xy_error
+            self.prev_time = time
         self.curr_wp = (self.x, self.y)
         self.draw_visited()
         self.prev_wp = self.curr_wp
@@ -215,25 +221,27 @@ class Sketchibot(object):
                     prev = pos
                 print "contour"
                 first = True # Marker should be up when going to the first point of each new contour
+            self.pub_marker.publish(String("0"))
+            self.push_waypoint(0, 0)
+            self.th_f = 0
+            self.rotate_neato()
 
         self.pub_vel.publish(Twist())
         cv2.waitKey(0)
 
 if __name__ == '__main__':
         #edge detection stuff
-    # rospack = rospkg.RosPack()
-    # path = rospack.get_path('sketchibot')
-    # detector = EdgeDetector(image_path=path+"/images/cow.png") #creates edge detection class
-    # detector.reconstruct_contours()     #makes contours
-    # detector.sort_contours()            #sorts them to make the Neato's job easier
-    # contours = detector.get_contours()  #actually gets image contours
-    # size = detector.get_size()          #gets size of image
-    # drawing = ContourFiltering(strokes = contours,imsize=size,pagesize=(1.5,1.5)) #creates contour filtering class 
-    # drawing.run_filter()                #runs filtering and centering methods on contours
-    # waypts = drawing.get_number_of_waypoints()  #gets number of waypoints
-    # strokes = drawing.get_strokes()             #returns strokes
-    # print strokes
+    rospack = rospkg.RosPack()
+    path = rospack.get_path('sketchibot')
+    detector = EdgeDetector(image_path=path+"/images/dog.png") #creates edge detection class
+    detector.reconstruct_contours()     #makes contours
+    detector.sort_contours()            #sorts them to make the Neato's job easier
+    contours = detector.get_contours()  #actually gets image contours
+    size = detector.get_size()          #gets size of image
+    drawing = ContourFiltering(strokes = contours,imsize=size,pagesize=(1.25, 1.25)) #creates contour filtering class 
+    drawing.run_filter()                #runs filtering and centering methods on contours
+    waypts = drawing.get_number_of_waypoints()  #gets number of waypoints
+    strokes = drawing.get_strokes()             #returns strokes
 
-    strokes = np.array([[[0,1], [1,1], [1,0], [0,0]]])
     node = Sketchibot(strokes)
     node.run()
