@@ -8,12 +8,11 @@ from localization import Sketchibot
 
 waypt_limit = 500.0
 
-#input: page read
-
-#size tesseract text
+#read tesseract text
+reader = TextReader()
+query = reader.get_reading()[1]
 
 #search image
-
 has_found = False
 skip_counter = 0
 searcher = ImageSearcher()
@@ -25,7 +24,7 @@ while not has_found:
 		detector.sort_contours()            #sorts them to make the Neato's job easier
 		contours = detector.get_contours()  #actually gets image contours
 		size = detector.get_size()          #gets size of image
-		drawing = ContourFiltering(strokes = contours, imsize=size) #creates contour filtering class 
+		drawing = ContourFiltering(strokes = contours, imsize=size) #creates contour filtering class
 		drawing.run_filter()                #runs filtering and centering methods on contours
 		waypts = drawing.get_number_of_waypoints()  #gets number of waypoints
 		if wapts < waypt_limit:
@@ -33,21 +32,6 @@ while not has_found:
 			has_found = True
 			break
 	skip_counter +=10
-			
-
-
-#download image
-
-#run contour filtering
-
-#if image is less than certain # of waypoints, roll with it
-
-#if not, choose next image
-
-
-
-
-
-
 
 #send waypoints to neato
+bot = Sketchibot(strokes)
