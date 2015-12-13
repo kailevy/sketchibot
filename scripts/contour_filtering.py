@@ -33,10 +33,10 @@ class ContourFiltering():
         so that the image will fit inside the page no matter which side is bigger"""
         if imrat < pagerat:
         #if the image ratio is smaller than the page ratio, scale to height of page, with some wiggle room
-            self.scalefactor = (self.pagey/self.imx)*.75
+            self.scalefactor = (self.pagey/self.imx)*.6
         else:
          #if the image ratio is smaller than the page ratio, scale to width of page, with some wiggle room
-            self.scalefactor = (self.pagex/self.imy)*.75
+            self.scalefactor = (self.pagex/self.imy)*.6
 
         #print self.scalefactor
 
@@ -63,31 +63,53 @@ class ContourFiltering():
         """filters points based on angle and distance thresholds"""
         filtered_cpaths = [] #creates new list of filtered paths
         threshold = .2  #minimum distance between two points
-        angle_thresh = 30.0 #minimum angle between three points
+        angle_thresh = 20 #minimum angle between three points
         for path in self.strokes:
             #loops through paths and filters them
             filtered_cpath = [] #creates new filtered path
             i = 0 #index only of points above threshold criteria
-            while i < len(path) - 3:
+            while i < len(path)-1:
                 #only appends points to path above threshold criteria
                 j = i + 1   #j loops through all points
                 filtered_cpath.append(path[i]) #only appends i values to filtered list
                 distance = 0 #distance between two points
-                anglediff = 0 #angle made by three points
+                anglediff = 0.0 #angle made by three points
                 #i only increments when function finds values above threshold
-                while distance < threshold and anglediff < angle_thresh and j < len(path)-2: #while 3 points are below threshold
+                while distance < threshold and anglediff < angle_thresh and j < len(path)-1: #while 3 points are below threshold
                     radangle1 = atan2(path[j][1]-path[i][1],path[j][0]-path[i][0])  #angle between first 2 points and 0
                     radangle2 = atan2(path[j+1][1]-path[j][1],path[j+1][0]-path[j][0]) #angle between second 2 points and 0
                     #convert angles to degrees
                     angle1 = radangle1*180.0/pi
                     angle2 = radangle2*180.0/pi
+                    #print "j-i, ", str(j-i), " angle 1", str(angle1) + " angle 2", str(angle2)
                     anglediff = abs(angle2-angle1) #calculates difference between angles
                     distance = sqrt((path[i][0]-path[j][0])**2 + (path[i][1]-path[j][1])**2) #calculates distance between two points
                     j += 1 #indexes j values
                 i = j #starts i at next j value in list
+            print path
             filtered_cpath.append(path[-1]) #appends last point in path to the list
             filtered_cpaths.append(filtered_cpath) #append filtered path to list of paths
+            print "completed path", filtered_cpath
+        #filtered_cpaths = [filtered_cpaths[1]]
         self.strokes = filtered_cpaths #sets self.strokes to filtered path
+
+    def point_filtering2(self):
+        """new filtration method"""
+        filtered_cpaths = []
+        angle_thresh = 20.0
+        for path in self.strokes:
+            filtered_cpath = []
+            i = 0
+            while i < len(path)-1:
+                filtered_cpath.append(path[i])
+                radangle1 = atan2(path[i+1][1]-path[i][1],path[i+1][0]-path[i][0])  #angle between first 2 points and 0
+                radangle2 = atan2(path[i+2][1]-path[i+1][1],path[i+2][0]-path[i+1][0]) #angle between second 2 points and 0
+                angle1 = radangle1*180.0/pi
+                angle2 = radangle2*180.0/pi
+                anglediff = abs(angle2-angle1) #calculates difference between angles
+                if anglediff > angle_thresh:
+                    filtered_cpath.append(path[i+1])
+                i+=2
 
     def center_contours(self):
         """centers contours in the middle of the page"""
@@ -148,7 +170,7 @@ class ContourFiltering():
 
 if __name__ == '__main__':
     #edge detection stuff
-    detector = EdgeDetector(image_path="../images/cow.png") #creates edge detection class
+    detector = EdgeDetector(image_path="../images/dog.png") #creates edge detection class
     detector.reconstruct_contours()     #makes contours
     detector.sort_contours()            #sorts them to make the Neato's job easier
     contours = detector.get_contours()  #actually gets image contours
@@ -158,4 +180,4 @@ if __name__ == '__main__':
     waypts = drawing.get_number_of_waypoints()  #gets number of waypoints
     print waypts                                #prints number of waypoints
     strokes = drawing.get_strokes()             #returns strokes
-    drawing.plot_points()                     #plots contours
+    drawing.plot_contours()                     #plots contours

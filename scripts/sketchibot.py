@@ -35,3 +35,4 @@ while not has_found:
 
 #send waypoints to neato
 bot = Sketchibot(strokes)
+bot.run()

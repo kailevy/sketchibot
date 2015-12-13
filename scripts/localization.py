@@ -17,8 +17,8 @@ from std_msgs.msg import Header, String
 from edge_detect import EdgeDetector
 from contour_filtering import ContourFiltering
 
-VEL_ANGULAR_LIM = 0.15
-VEL_LINEAR_LIM = 0.1
+VEL_ANGULAR_LIM = 0.2
+VEL_LINEAR_LIM = 0.2
 
 """ Converts a translation and rotation component to a Pose object """
 def convert_to_pose(translation, rotation):
@@ -50,7 +50,7 @@ class Sketchibot(object):
         # Gets current position of the Neato
         rospy.Subscriber('/position', PoseStamped, self.position_callback)
 
-        self.page_size = (2,2)
+        self.page_size = (1.25, 1.25)
 
         # Current and final state variables of the Neato
         self.x,   self.y,   self.th   = (0, 0, 0)
@@ -95,7 +95,7 @@ class Sketchibot(object):
 
     """ Checks if the Neato has rotated towards the target goal """
     def correct_heading(self):
-        return abs(self.th_f - self.th) < 0.03 or abs(abs(self.th_f - self.th) - 2*np.pi) < 0.03
+        return abs(self.th_f - self.th) < 0.1 or abs(abs(self.th_f - self.th) - 2*np.pi) < 0.1
 
     """ Moves the Neato until it is at the waypoint """
     def forwards_neato(self):
@@ -108,19 +108,25 @@ class Sketchibot(object):
             xy_error = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2)
             th_error = self.calc_th_error()
 
-            K_xy = 0.1  # Proportional control
-            K_th = 0.1
+            P_xy = 0.3  # Proportional control
+            P_th = 0.1
+            D_xy = 0.01 # Derivative control
+            time = rospy.get_rostime()
 
             vel = Twist()
-            vel.linear.x = min(K_xy * xy_error + 0.1, VEL_LINEAR_LIM)
-            omega = K_th * th_error + 0.1 * np.sign(th_error)
-            if omega < -VEL_ANGULAR_LIM*2:
-                omega = -VEL_ANGULAR_LIM*2
-            elif omega > VEL_ANGULAR_LIM*2:
-                omega = VEL_ANGULAR_LIM*2
+            vel_x = P_xy * xy_error + D_xy * (xy_error - self.prev_xy_error) / (time - self.prev_time)
+            vel.linear.x = min(vel_x, VEL_LINEAR_LIM)
+            omega = P_th * th_error #+ 0.1 * np.sign(th_error)
+            if omega < -VEL_ANGULAR_LIM*3:
+                omega = -VEL_ANGULAR_LIM*3
+            elif omega > VEL_ANGULAR_LIM*3:
+                omega = VEL_ANGULAR_LIM*3
             vel.angular.z = omega
 
             self.pub_vel.publish(vel)
+
+            self.prev_xy_error = xy_error
+            self.prev_time = time
         self.curr_wp = (self.x, self.y)
         self.draw_visited()
         self.prev_wp = self.curr_wp
@@ -186,6 +192,7 @@ class Sketchibot(object):
         pt2_y = int(self.curr_wp[1] * self.page_size[1])
 
         cv2.line(self.path_image, (pt1_x, pt1_y), (pt2_x, pt2_y), (0,0,255), 1)
+        cv2.imshow("Path", self.path_image)
         cv2.waitKey(10)
 
     """ Main loop that sends velocity commands to the Neato """
@@ -214,6 +221,10 @@ class Sketchibot(object):
                     prev = pos
                 print "contour"
                 first = True # Marker should be up when going to the first point of each new contour
+            self.pub_marker.publish(String("0"))
+            self.push_waypoint(0, 0)
+            self.th_f = 0
+            self.rotate_neato()
 
         self.pub_vel.publish(Twist())
         cv2.waitKey(0)
@@ -222,12 +233,12 @@ if __name__ == '__main__':
         #edge detection stuff
     rospack = rospkg.RosPack()
     path = rospack.get_path('sketchibot')
-    detector = EdgeDetector(image_path=path+"/images/cow.png") #creates edge detection class
+    detector = EdgeDetector(image_path=path+"/images/dog.png") #creates edge detection class
     detector.reconstruct_contours()     #makes contours
     detector.sort_contours()            #sorts them to make the Neato's job easier
     contours = detector.get_contours()  #actually gets image contours
     size = detector.get_size()          #gets size of image
-    drawing = ContourFiltering(strokes = contours,imsize=size,pagesize=(2,2)) #creates contour filtering class 
+    drawing = ContourFiltering(strokes = contours,imsize=size,pagesize=(1.25, 1.25)) #creates contour filtering class 
     drawing.run_filter()                #runs filtering and centering methods on contours
     waypts = drawing.get_number_of_waypoints()  #gets number of waypoints
     strokes = drawing.get_strokes()             #returns strokes
