@@ -96,24 +96,27 @@ class ContourFiltering():
     def point_filtering2(self):
         """new filtration method"""
         filtered_cpaths = []
-        angle_thresh = 20.0
+        angle_thresh = 60.0
         for path in self.strokes:
             filtered_cpath = []
+            print path
             i = 0
-            while i < len(path)-1:
+            while i < len(path)-2:
                 filtered_cpath.append(path[i])
                 radangle1 = atan2(path[i+1][1]-path[i][1],path[i+1][0]-path[i][0])  #angle between first 2 points and 0
                 radangle2 = atan2(path[i+2][1]-path[i+1][1],path[i+2][0]-path[i+1][0]) #angle between second 2 points and 0
                 angle1 = radangle1*180.0/pi
                 angle2 = radangle2*180.0/pi
-                anglediff = abs(angle2-angle1) #calculates difference between angles
+                anglediff = angle2-angle1 #calculates difference between angles
+                print anglediff
                 if anglediff > angle_thresh:
                     filtered_cpath.append(path[i+1])
-                i+=2
+                i+=1
             filtered_cpath.append(path[-1]) #appends last point in path to the list
             filtered_cpaths.append(filtered_cpath) #append filtered path to list of paths
-            print "completed path", filtered_cpath
-        #filtered_cpaths = [filtered_cpaths[1]]
+            #print "completed path"
+            #print filtered_cpath
+        #filtered_cpaths = [filtered_cpaths[0]]
         self.strokes = filtered_cpaths #sets self.strokes to filtered path
 
     def center_contours(self):
@@ -175,14 +178,16 @@ class ContourFiltering():
 
 if __name__ == '__main__':
     #edge detection stuff
-    detector = EdgeDetector(image_path="../images/dog.png") #creates edge detection class
+    detector = EdgeDetector(image_path="../images/cow.png") #creates edge detection class
     detector.reconstruct_contours()     #makes contours
     detector.sort_contours()            #sorts them to make the Neato's job easier
     contours = detector.get_contours()  #actually gets image contours
     size = detector.get_size()          #gets size of image
-    drawing = ContourFiltering(strokes = contours,imsize=size) #creates contour filtering class 
+    contours = [[[0,0],[0,.5],[.5,.5],[.75,.75],[0,1]]]
+    size = (1,1)
+    drawing = ContourFiltering(strokes = contours,imsize=size,pagesize=(4,4)) #creates contour filtering class 
     drawing.run_filter()                #runs filtering and centering methods on contours
     waypts = drawing.get_number_of_waypoints()  #gets number of waypoints
-    print waypts                                #prints number of waypoints
+    #print waypts                                #prints number of waypoints
     strokes = drawing.get_strokes()             #returns strokes
     drawing.plot_contours()                     #plots contours
