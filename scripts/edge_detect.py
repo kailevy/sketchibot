@@ -7,8 +7,6 @@ import cv2
 import numpy as np
 import sys
 from image_searcher import ImageSearch
-from scipy.linalg import norm
-from scipy import sum, average
 
 class EdgeDetector(object):
     """
@@ -93,26 +91,6 @@ class EdgeDetector(object):
 
     def get_size(self):
         return self.img.shape
-
-def compare_images(img1, img2):
-    """
-    Helper function from:
-    http://stackoverflow.com/questions/189943/how-can-i-quantify-difference-between-two-images
-    """
-    # normalize to compensate for exposure difference, this may be unnecessary
-    # consider disabling it
-    # calculate the difference and its norms
-    diff = (img1) - (img2)  # elementwise for scipy arrays
-    z_norm = norm(diff.ravel(), 1)  # one norm
-    return z_norm
-
-def normalize(arr):
-    """
-    normalize the image array by taking (each element - mean) / standard dev
-    """
-    arr_mean = arr.mean()
-    std_dev = arr.std()
-    return (arr - arr_mean) / std_dev
 
 if __name__ == '__main__':
     image = sys.argv[1]
