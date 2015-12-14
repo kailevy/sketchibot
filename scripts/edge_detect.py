@@ -17,7 +17,7 @@ class EdgeDetector(object):
     def __init__(self, image_path=None, image=None):
         if image != None:
             self.img = image
-        else:
+        elif image_path:
             self.img = cv2.imread(image_path, 0)
         high_thresh, thresh_im = cv2.threshold(self.img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         low_thresh = 0.5*high_thresh

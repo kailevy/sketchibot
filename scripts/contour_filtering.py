@@ -86,10 +86,10 @@ class ContourFiltering():
                     distance = sqrt((path[i][0]-path[j][0])**2 + (path[i][1]-path[j][1])**2) #calculates distance between two points
                     j += 1 #indexes j values
                 i = j #starts i at next j value in list
-            print path
+            #print path
             filtered_cpath.append(path[-1]) #appends last point in path to the list
             filtered_cpaths.append(filtered_cpath) #append filtered path to list of paths
-            print "completed path", filtered_cpath
+            #print "completed path", filtered_cpath
         #filtered_cpaths = [filtered_cpaths[1]]
         self.strokes = filtered_cpaths #sets self.strokes to filtered path
 
@@ -110,6 +110,11 @@ class ContourFiltering():
                 if anglediff > angle_thresh:
                     filtered_cpath.append(path[i+1])
                 i+=2
+            filtered_cpath.append(path[-1]) #appends last point in path to the list
+            filtered_cpaths.append(filtered_cpath) #append filtered path to list of paths
+            print "completed path", filtered_cpath
+        #filtered_cpaths = [filtered_cpaths[1]]
+        self.strokes = filtered_cpaths #sets self.strokes to filtered path
 
     def center_contours(self):
         """centers contours in the middle of the page"""

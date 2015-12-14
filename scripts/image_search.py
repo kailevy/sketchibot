@@ -75,4 +75,4 @@ def convert_to_opencv(image):
     open_cv_image = np.array(pil_image)
     # Convert RGB to BGR
     open_cv_image = open_cv_image[:, :, ::-1].copy()
-    return open_cv_image
+    return cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2GRAY)
