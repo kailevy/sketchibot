@@ -25,8 +25,9 @@ class TextReader(object):
     Text Reader Node
     """
 
-    def __init__(self):
-        rospy.init_node('text_reader')
+    def __init__(self, init_node=True):
+        if init_node:
+            rospy.init_node('text_reader')
         self.bridge = CvBridge()  # used to convert ROS image messages to OpenCV
         self.image = None
         self.cv_image = None

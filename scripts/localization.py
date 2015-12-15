@@ -40,8 +40,9 @@ def convert_pose_to_xy_and_theta(pose):
 class Sketchibot(object):
 
     """ Initialzies important variables and nodes """
-    def __init__(self, strokes):
-        rospy.init_node('localization')
+    def __init__(self, strokes, init_node=True):
+        if init_node:
+            rospy.init_node('localization')
  
         # Publishes directly to the navigation stack
         self.pub_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
@@ -52,6 +53,8 @@ class Sketchibot(object):
 
         self.page_size = (1.25, 1.25)
 
+        self.first = True
+
         # Current and final state variables of the Neato
         self.x,   self.y,   self.th   = (0, 0, 0)
         self.x_f, self.y_f, self.th_f = (0, 0, 0)
@@ -60,9 +63,13 @@ class Sketchibot(object):
         self.prev_wp = (0, 0)
         self.curr_wp = (0, 0)
 
+        # Previous and current xy error
+        self.prev_xy_error = 0.0
+        self.prev_time = rospy.Time.now()
+
         # Draws all of the paths taken onto an image
         im_x, im_y = 512 * self.page_size[0], 512 * self.page_size[1]
-        self.path_image = np.zeros((im_x, im_y, 3), np.uint8)
+        self.path_image = np.ones((im_x, im_y, 3), np.uint8) * 100
         cv2.imshow("Path", self.path_image)
         cv2.waitKey(50)
 
@@ -71,7 +78,8 @@ class Sketchibot(object):
     """ Callback function for Neato's current position """
     def position_callback(self, msg):
         self.x, self.y, self.th = convert_pose_to_xy_and_theta(msg.pose)
-        print self.x, self.y, self.th
+        self.draw_waypoints()
+        # print self.x, self.y, self.th, self.x_f, self.y_f, self.th_f
 
     """ Publishes a waypoint to the Neato, with the map as the coordinate frame
             pos - delta in translational motion
@@ -82,6 +90,10 @@ class Sketchibot(object):
         self.x_f, self.y_f = pos
         self.th_f = rot
 
+        dist = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2)
+        if dist < 0.1:
+            return
+
         # Rotates the Neato towards the next goal
         self.rotate_neato()
 
@@ -91,11 +103,11 @@ class Sketchibot(object):
     """ Checks if goal has been reached """
     def reached_goal(self):
         dist = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2)
-        return dist < 0.03
+        return dist < 0.05
 
     """ Checks if the Neato has rotated towards the target goal """
     def correct_heading(self):
-        return abs(self.th_f - self.th) < 0.1 or abs(abs(self.th_f - self.th) - 2*np.pi) < 0.1
+        return abs(self.th_f - self.th) < 0.05 or abs(abs(self.th_f - self.th) - 2*np.pi) < 0.05
 
     """ Moves the Neato until it is at the waypoint """
     def forwards_neato(self):
@@ -108,28 +120,32 @@ class Sketchibot(object):
             xy_error = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2)
             th_error = self.calc_th_error()
 
-            P_xy = 0.3  # Proportional control
+            P_xy = 0.15  # Proportional control
             P_th = 0.1
             D_xy = 0.01 # Derivative control
-            time = rospy.get_rostime()
+            time = rospy.Time.now()
 
             vel = Twist()
-            vel_x = P_xy * xy_error + D_xy * (xy_error - self.prev_xy_error) / (time - self.prev_time)
+            vel_x = P_xy * xy_error + D_xy * (xy_error - self.prev_xy_error) / (time - self.prev_time).to_sec()
             vel.linear.x = min(vel_x, VEL_LINEAR_LIM)
-            omega = P_th * th_error #+ 0.1 * np.sign(th_error)
-            if omega < -VEL_ANGULAR_LIM*3:
-                omega = -VEL_ANGULAR_LIM*3
-            elif omega > VEL_ANGULAR_LIM*3:
-                omega = VEL_ANGULAR_LIM*3
-            vel.angular.z = omega
+            if xy_error > 0.25:
+                omega = P_th * th_error #+ 0.1 * np.sign(th_error)
+                if omega < -VEL_ANGULAR_LIM:
+                    omega = -VEL_ANGULAR_LIM
+                elif omega > VEL_ANGULAR_LIM:
+                    omega = VEL_ANGULAR_LIM
+                vel.angular.z = omega
 
             self.pub_vel.publish(vel)
+
+            cv2.waitKey(5)
 
             self.prev_xy_error = xy_error
             self.prev_time = time
         self.curr_wp = (self.x, self.y)
-        self.draw_visited()
-        self.prev_wp = self.curr_wp
+        if not self.first:
+        	self.draw_visited()
+        self.prev_wp = (self.curr_wp[0], self.curr_wp[1])
 
     """ Rotates the Neato until its heading is correct """
     def rotate_neato(self):
@@ -186,29 +202,34 @@ class Sketchibot(object):
 
     """ Draws all of the strokes onto an OpenCV window """
     def draw_visited(self):
-        pt1_x = int(self.prev_wp[0] * self.page_size[0])
-        pt1_y = int(self.prev_wp[1] * self.page_size[1])
-        pt2_x = int(self.curr_wp[0] * self.page_size[0])
-        pt2_y = int(self.curr_wp[1] * self.page_size[1])
+        pt1_x = int(self.prev_wp[0] * 512)
+        pt1_y = int(-self.prev_wp[1] * 512)
+        pt2_x = int(self.curr_wp[0] * 512)
+        pt2_y = int(-self.curr_wp[1] * 512)
 
         cv2.line(self.path_image, (pt1_x, pt1_y), (pt2_x, pt2_y), (0,0,255), 1)
         cv2.imshow("Path", self.path_image)
-        cv2.waitKey(10)
+
+    """ Draws the location of the Neato in the image """
+    def draw_waypoints(self):
+        pt_x = int(self.x * 512)
+        pt_y = int(-self.y * 512)
+
+        cv2.circle(self.path_image, (pt_x, pt_y), 1, (255,0,0))
 
     """ Main loop that sends velocity commands to the Neato """
     def run(self):
         # Waits until everything has been initialized
         rospy.wait_for_message('/position', PoseStamped, timeout=5)
 
-        first = True
         prev = [0, 0]
 
         r = rospy.Rate(10)
         if not rospy.is_shutdown():
             for i in self.contours:
                 for j in i:
-                    if first == True:
-                        first = False
+                    if self.first == True:
+                        self.first = False
                         self.pub_marker.publish(String("0"))
                         print "pen up"
                     else:
@@ -220,7 +241,7 @@ class Sketchibot(object):
                     self.push_waypoint(pos, rot)
                     prev = pos
                 print "contour"
-                first = True # Marker should be up when going to the first point of each new contour
+                self.first = True # Marker should be up when going to the first point of each new contour
             self.pub_marker.publish(String("0"))
             self.push_waypoint(0, 0)
             self.th_f = 0
