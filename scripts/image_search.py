@@ -25,13 +25,13 @@ class ImageSearcher(object):
         self.root_url = "https://api.datamarket.azure.com/Bing/Search"
         self.user_agent = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; FDM; .NET CLR 2.0.50727; InfoPath.2; .NET CLR 1.1.4322)'
 
-    def make_request(self, query, top=5, skip=0, filters=[], clipart=True):
+    def make_request(self, query, top=5, skip=0, filters=[], line_art=True):
         """
         Retrieves top results, with skip, optional filters, and an optional 'clip art' addendum
         """
         filter_str = '%27&ImageFilters=%27'+'%2b'.join(filters) # Add filters
-        if clipart:
-            query = query + ' clip art'
+        if line_art:
+            query = query + ' line drawing'
         query = urllib2.quote(query)
         # Construct query url
         url = self.root_url + '/Image?' + \
@@ -48,11 +48,11 @@ class ImageSearcher(object):
         # Return direct urls to images
         return [result['MediaUrl'] for result in result_list]
 
-    def find_image(self, query, top=10, skip=0, filters=[], clipart=True):
+    def find_image(self, query, top=10, skip=0, filters=[], line_art=True):
         """
         Calls querying method and creates a list of images from the results
         """
-        res = self.make_request(query, top=top, skip=skip, filters=filters, clipart=clipart)
+        res = self.make_request(query, top=top, skip=skip, filters=filters, line_art=line_art)
         image = []
         for result in res:
             image.append(convert_to_opencv(get_image_from_url(result)))
