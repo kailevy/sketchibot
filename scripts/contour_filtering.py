@@ -11,7 +11,7 @@ from edge_detect import EdgeDetector
 class ContourFiltering():
     """Inputs an array of points from a contour, image size, and size of the paper
     contains functions that output a filtered array of waypoints scaled to the appropriate page size"""
-    def __init__(self, strokes = [],imsize=(1,1),pagesize=(2,2)):
+    def __init__(self, strokes = [],imsize=(1,1),pagesize=(1.7, 1.7)):
         """inputs should be from Edge Detector
         strokes: list of strokes, where each stroke is a list of (x,y) points from edge detection
         imsize: size of the image used to make the strokes

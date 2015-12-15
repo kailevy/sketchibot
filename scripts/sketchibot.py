@@ -17,7 +17,7 @@ waypt_limit = 300.0
 #read tesseract text
 reader = TextReader()
 query = reader.get_reading()[1]
-print query
+
 
 #search image
 has_found = False
@@ -41,8 +41,13 @@ while not has_found:
 			break
 	skip_counter += 10
 detector.display_image()
-drawing.plot_contours()                     #plots contours
+# drawing.plot_contours()                     #plots contours
 
 #send waypoints to neato
-#bot = Sketchibot(strokes)
-#bot.run()
+bot = Sketchibot(strokes, init_node=False)
+print "Starting!"
+print strokes
+
+bot.run()
+
+print "Done!"
