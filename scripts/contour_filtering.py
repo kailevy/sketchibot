@@ -102,16 +102,30 @@ class ContourFiltering():
             print path
             i = 0
             while i < len(path)-2:
+                x1 = path[i][0]
+                y1 = path[i][1]
+                x2 = path[i+1][0]
+                y2 = path[i+1][1]
+                x3 = path[i+2][0]
+                y3 = path[i+2][1]
+                a = sqrt((x2-x1)**2 + (y2-y1)**2)
+                b = sqrt((x3-x2)**2 + (y3-y2)**2)
+                c = sqrt((x3-x1)**2 + (y3-y1)**2)
+                radangle = arccos((a**2 + b**2 - c**2)/(2*a*b))
+                angle = radangle*180/pi
                 filtered_cpath.append(path[i])
+                #if angle
+
+                dist1 = sqrt([i+1]**2)
                 radangle1 = atan2(path[i+1][1]-path[i][1],path[i+1][0]-path[i][0])  #angle between first 2 points and 0
                 radangle2 = atan2(path[i+2][1]-path[i+1][1],path[i+2][0]-path[i+1][0]) #angle between second 2 points and 0
                 angle1 = radangle1*180.0/pi
                 angle2 = radangle2*180.0/pi
                 anglediff = angle2-angle1 #calculates difference between angles
-                print anglediff
+                print angle1, angle2, anglediff
                 if anglediff > angle_thresh:
                     filtered_cpath.append(path[i+1])
-                i+=1
+                i+=2
             filtered_cpath.append(path[-1]) #appends last point in path to the list
             filtered_cpaths.append(filtered_cpath) #append filtered path to list of paths
             #print "completed path"
@@ -132,29 +146,29 @@ class ContourFiltering():
         """plots the paths in a window"""
         self.im = 255*np.ones(self.patch_size,dtype=np.uint8)   #makes window all white
         cv2.namedWindow("Filtered Contour Plot") #names the window
-        while not rospy.is_shutdown():
-            cv2.imshow("Filtered Contour Plot", self.im) #displays window
-            key = cv2.waitKey(5)
-            for path in self.strokes:
-                #loops through all paths
-                for i in range(len(path)):
-                    #plots a line from one point in a path to the next
-                    if 0<i<len(path):
-                        cv2.line(self.im,(int(path[i-1][0]*self.screenscale),int(path[i-1][1]*self.screenscale)),(int(int(path[i][0]*self.screenscale)),int(path[i][1]*self.screenscale)),(0,0,0),2)
+        #while not rospy.is_shutdown():
+        print "in here"
+        for path in self.strokes:
+            #loops through all paths
+            for i in range(len(path)):
+                #plots a line from one point in a path to the next
+                if 0<i<len(path):
+                    cv2.line(self.im,(int(path[i-1][0]*self.screenscale),int(path[i-1][1]*self.screenscale)),(int(int(path[i][0]*self.screenscale)),int(path[i][1]*self.screenscale)),(0,0,0),2)
+        cv2.imshow("Filtered Contour Plot", self.im) #displays window
+        key = cv2.waitKey(0)
 
     def plot_points(self):
         """plots the waypoints in a window"""
         self.im2 = 255*np.ones(self.patch_size,dtype=np.uint8)   #makes window all white
         cv2.namedWindow("Filtered Waypoint Plot") #names the window
-        while not rospy.is_shutdown():
-            cv2.imshow("Filtered Waypoint Plot", self.im2) #displays window
-            key = cv2.waitKey(5)
-            for path in self.strokes:
-                #loops through all paths
-                for i in range(len(path)):
-                    #plots a small circle for each point in the path
-                    if 0<i<len(path):
-                        cv2.circle(self.im2,(int(path[i][0]*self.screenscale),int(path[i][1]*self.screenscale)),1,(0,0,0),1)                    
+        for path in self.strokes:
+            #loops through all paths
+            for i in range(len(path)):
+                #plots a small circle for each point in the path
+                if 0<i<len(path):
+                    cv2.circle(self.im2,(int(path[i][0]*self.screenscale),int(path[i][1]*self.screenscale)),1,(0,0,0),1)
+        cv2.imshow("Filtered Waypoint Plot", self.im2) #displays window
+        key = cv2.waitKey(5)                    
 
     def get_strokes(self):
         """returns all the filtered strokes"""
@@ -191,3 +205,4 @@ if __name__ == '__main__':
     #print waypts                                #prints number of waypoints
     strokes = drawing.get_strokes()             #returns strokes
     drawing.plot_contours()                     #plots contours
+    drawing.plot_points()                     #plots contours
