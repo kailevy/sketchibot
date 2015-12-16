@@ -4,7 +4,7 @@
 
 import numpy as np
 import cv2
-from math import pi, cos, sin, sqrt, atan2
+from math import pi, cos, sin, sqrt, atan2, acos
 import rospy
 from edge_detect import EdgeDetector
 
@@ -96,41 +96,37 @@ class ContourFiltering():
     def point_filtering2(self):
         """new filtration method"""
         filtered_cpaths = []
-        angle_thresh = 60.0
+        angle_thresh = 170.0
         for path in self.strokes:
             filtered_cpath = []
             print path
             i = 0
             while i < len(path)-2:
+                filtered_cpath.append(path[i])
+                j = i + 1
                 x1 = path[i][0]
                 y1 = path[i][1]
-                x2 = path[i+1][0]
-                y2 = path[i+1][1]
-                x3 = path[i+2][0]
-                y3 = path[i+2][1]
-                a = sqrt((x2-x1)**2 + (y2-y1)**2)
-                b = sqrt((x3-x2)**2 + (y3-y2)**2)
-                c = sqrt((x3-x1)**2 + (y3-y1)**2)
-                radangle = arccos((a**2 + b**2 - c**2)/(2*a*b))
-                angle = radangle*180/pi
-                filtered_cpath.append(path[i])
-                #if angle
-
-                dist1 = sqrt([i+1]**2)
-                radangle1 = atan2(path[i+1][1]-path[i][1],path[i+1][0]-path[i][0])  #angle between first 2 points and 0
-                radangle2 = atan2(path[i+2][1]-path[i+1][1],path[i+2][0]-path[i+1][0]) #angle between second 2 points and 0
-                angle1 = radangle1*180.0/pi
-                angle2 = radangle2*180.0/pi
-                anglediff = angle2-angle1 #calculates difference between angles
-                print angle1, angle2, anglediff
-                if anglediff > angle_thresh:
-                    filtered_cpath.append(path[i+1])
-                i+=2
+                x2 = path[j][0]
+                y2 = path[j][1]
+                x3 = path[j+1][0]
+                y3 = path[j+1][1]
+                a = sqrt(((x2-x1)**2.0) + ((y2-y1)**2.0))
+                b = sqrt(((x3-x2)**2.0) + ((y3-y2)**2.0))
+                c = sqrt(((x3-x1)**2.0) + ((y3-y1)**2.0))
+                value = ((a**2.0) + (b**2.0) - (c**2.0))/(2.0*a*b)
+                newval = np.clip(value,-1.0,1.0)
+                radangle = acos(newval)
+                angle = radangle*180.0/pi
+                print angle
+                while j < len(path) - 1 and angle > angle_thresh:
+                    j += 1
+                i=j
             filtered_cpath.append(path[-1]) #appends last point in path to the list
             filtered_cpaths.append(filtered_cpath) #append filtered path to list of paths
             #print "completed path"
             #print filtered_cpath
         #filtered_cpaths = [filtered_cpaths[0]]
+        print filtered_cpaths
         self.strokes = filtered_cpaths #sets self.strokes to filtered path
 
     def center_contours(self):
@@ -146,8 +142,6 @@ class ContourFiltering():
         """plots the paths in a window"""
         self.im = 255*np.ones(self.patch_size,dtype=np.uint8)   #makes window all white
         cv2.namedWindow("Filtered Contour Plot") #names the window
-        #while not rospy.is_shutdown():
-        print "in here"
         for path in self.strokes:
             #loops through all paths
             for i in range(len(path)):
@@ -197,12 +191,13 @@ if __name__ == '__main__':
     detector.sort_contours()            #sorts them to make the Neato's job easier
     contours = detector.get_contours()  #actually gets image contours
     size = detector.get_size()          #gets size of image
-    contours = [[[0,0],[0,.5],[.5,.5],[.75,.75],[0,1]]]
-    size = (1,1)
+    #contours = [[[0,0],[0,.5],[.5,.5],[.75,.75],[0,1]]]
+    #size = (1,1)
     drawing = ContourFiltering(strokes = contours,imsize=size,pagesize=(4,4)) #creates contour filtering class 
     drawing.run_filter()                #runs filtering and centering methods on contours
     waypts = drawing.get_number_of_waypoints()  #gets number of waypoints
     #print waypts                                #prints number of waypoints
     strokes = drawing.get_strokes()             #returns strokes
+    print strokes
     drawing.plot_contours()                     #plots contours
     drawing.plot_points()                     #plots contours
