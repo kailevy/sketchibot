@@ -15,8 +15,8 @@ MEDIUM = 'Size%3aMedium'
 waypt_limit = 300.0
 
 #read tesseract text
-reader = TextReader()
-query = reader.get_reading()[1]
+# reader = TextReader()
+query = "dog"#reader.get_reading()[1]
 
 
 #search image
@@ -44,7 +44,7 @@ detector.display_image()
 # drawing.plot_contours()                     #plots contours
 
 #send waypoints to neato
-bot = Sketchibot(strokes, init_node=False)
+bot = Sketchibot(strokes)
 print "Starting!"
 print strokes
 

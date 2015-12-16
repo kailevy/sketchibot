@@ -126,7 +126,7 @@ class Sketchibot(object):
             time = rospy.Time.now()
 
             vel = Twist()
-            vel_x = P_xy * xy_error + D_xy * (xy_error - self.prev_xy_error) / (time - self.prev_time).to_sec()
+            vel_x = P_xy * xy_error
             vel.linear.x = min(vel_x, VEL_LINEAR_LIM)
             if xy_error > 0.25:
                 omega = P_th * th_error #+ 0.1 * np.sign(th_error)
@@ -228,8 +228,7 @@ class Sketchibot(object):
         if not rospy.is_shutdown():
             for i in self.contours:
                 for j in i:
-                    if self.first == True:
-                        self.first = False
+                    if self.first:
                         self.pub_marker.publish(String("0"))
                         print "pen up"
                     else:
@@ -240,6 +239,7 @@ class Sketchibot(object):
 
                     self.push_waypoint(pos, rot)
                     prev = pos
+                    self.first = False
                 print "contour"
                 self.first = True # Marker should be up when going to the first point of each new contour
             self.pub_marker.publish(String("0"))
