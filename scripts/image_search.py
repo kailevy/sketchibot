@@ -55,7 +55,10 @@ class ImageSearcher(object):
         res = self.make_request(query, top=top, skip=skip, filters=filters, line_art=line_art)
         image = []
         for result in res:
-            image.append(convert_to_opencv(get_image_from_url(result)))
+            try:
+                image.append(convert_to_opencv(get_image_from_url(result)))
+            except:
+                pass
         return image
 
 def get_image_from_url(url):
