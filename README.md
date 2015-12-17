@@ -12,7 +12,10 @@ For more information about our project and our process, see the project stories 
 ## Prerequisites
 - Marker attachment on the Neato
 - Installation on the raspberry pi of the scripts included in `bot_files`
-  - Including modification of `/etc/rc.local` to run the scripts at startup
+  - Modification of `/etc/rc.local` to run the scripts at startup:
+
+    `echo "sudo ~pi/sketchibot/servo_server.py &" >> /etc/rc.local`
+
 - Addition of the following code to `bringup_minimal.launch` in `neato_node`
 ```
 <node name="marker_node" pkg="sketchibot" type="servo_client.py" output="screen">
@@ -35,3 +38,16 @@ For more information about our project and our process, see the project stories 
   - `roslaunch neato_node bringup.launch host:=[ip of robot]`
 - Launch the script
   - `roslaunch sketchibot sketchibot.launch`
+
+## System Architecture
+Sketchibot's work flow requires the coordination of a number of different modular parts described below.
+
+### Text Reading
+
+### Image Searching
+
+### Edge Detection
+
+### Contour Filtering
+
+### Navigation
