@@ -9,8 +9,6 @@ Sketchibot is a seeing and drawing robot. It attempts to play a 'pictionary'-lik
 
 For more information about our project and our process, see the project stories included in `/stories`
 
-![Drawing a Cat](./images/anim_robot.gif)
-
 ## Prerequisites
 - Marker attachment on the Neato
 - Installation on the raspberry pi of the scripts included in `bot_files`
