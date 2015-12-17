@@ -1,5 +1,7 @@
 scripts/api_key.sh
 
+timelapse/
+
 build/
 bin/
 lib/
