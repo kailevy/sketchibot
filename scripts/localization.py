@@ -51,7 +51,7 @@ class Sketchibot(object):
         # Gets current position of the Neato
         rospy.Subscriber('/position', PoseStamped, self.position_callback)
 
-        self.page_size = (1.25, 1.25)
+        self.page_size = (1.7, 1.7)
 
         self.first = True
 
@@ -91,7 +91,7 @@ class Sketchibot(object):
         self.th_f = rot
 
         dist = math.sqrt((self.x_f - self.x)**2 + (self.y_f - self.y)**2)
-        if dist < 0.1:
+        if dist < 0.03:
             return
 
         # Rotates the Neato towards the next goal
@@ -254,12 +254,12 @@ if __name__ == '__main__':
         #edge detection stuff
     rospack = rospkg.RosPack()
     path = rospack.get_path('sketchibot')
-    detector = EdgeDetector(image_path=path+"/images/dog.png") #creates edge detection class
+    detector = EdgeDetector(image_path=path+"/images/death_star2.jpg") #creates edge detection class
     detector.reconstruct_contours()     #makes contours
     detector.sort_contours()            #sorts them to make the Neato's job easier
     contours = detector.get_contours()  #actually gets image contours
     size = detector.get_size()          #gets size of image
-    drawing = ContourFiltering(strokes = contours,imsize=size,pagesize=(1.25, 1.25)) #creates contour filtering class 
+    drawing = ContourFiltering(strokes = contours,imsize=size,pagesize=(1.7, 1.7)) #creates contour filtering class 
     drawing.run_filter()                #runs filtering and centering methods on contours
     waypts = drawing.get_number_of_waypoints()  #gets number of waypoints
     strokes = drawing.get_strokes()             #returns strokes
