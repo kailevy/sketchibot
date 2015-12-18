@@ -10,7 +10,7 @@ Sketchibot is a seeing and drawing robot. It attempts to play a 'pictionary'-lik
 For more information about our project and our process, see the project stories included in `/stories`
 
 ## Prerequisites
-- Marker attachment on the Neato
+- Marker attachment on the Neato with a servo motor hooked up to pin 11
 - Installation on the raspberry pi of the scripts included in `bot_files`
   - Modification of `/etc/rc.local` to run the scripts at startup:
 
@@ -75,15 +75,21 @@ Once the array of contours from the edge detection program is ready, it gets pas
 ### Navigation
 `scripts/navigation.py`
 
-In order to detect the Neato's current position, the gmapping package is used to estimate a path for the robot the follow. For the first waypoint of each stroke, Sketchibot travels to the target location with the pen up. For each subsequent waypoint in the stroke, the marker is lowered and lines are drawn onto the page. It is important that suitable walls or markers are placed around the edges of the canvas, so that an accurate occupancy grid can be produced. Additionally, the laser scanner is only accurate up to a particular range, so it is also important to consider the strength of the LIDAR signal when the Neato is far away from all of its surroundings.
+In order to detect the Neato's current position, the gmapping SLAM package is used to estimate a path for the robot the follow. For the first waypoint of each stroke, Sketchibot travels to the target location with the pen up. For each subsequent waypoint in the stroke, the marker is lowered and lines are drawn onto the page. It is important that suitable walls or markers are placed around the edges of the canvas, so that an accurate occupancy grid can be produced. Additionally, the laser scanner is only accurate up to a particular range, so it is also important to consider the strength of the LIDAR signal when the Neato is far away from all of its surroundings.
 
 ### Main Program
 `scripts/sketchibot.py`
 
-This script runs all of the major components as in the flow diagram specified above. After executing the `roslaunch` command, this program takes care of everything else! You can see a time lapse of the drawing [here](https://github.com/kailevy/sketchibot/blob/master/images/anim_robot.gif)
+This script runs all of the major components as in the flow diagram specified above. After executing the `roslaunch` command, this program takes care of everything else! You can see a time lapse of the drawing [here.](https://github.com/kailevy/sketchibot/blob/master/images/anim_robot.gif)
 
 <img src="./images/cat_final.JPG" alt="The final cat drawing." width="400">
 
 ## Future Work
 
+One of the biggest problems we faced was dealing with the accuracy of the Neato. If it was too far from a waypoint, it would attempt to get to it but sometimes circle around and try and get back to it. Because the Neato's sensors aren't that accurate, it had trouble with the fine detail. For example, in this drawing of the Death Star, the Neato kept trying to loop back around to get to the correct waypoints, which ended up messing up the picture:
 
+<img src="./images/death_star_drawn.JPG" alt="The final cat drawing." width="400">
+
+The full time lapse of the drawing is [here.](https://github.com/kailevy/sketchibot/blob/master/images/death_start_anim.gif)
+
+ By adding more sensors to cross-check the motion of the robot, we could potentially improve the Neato's sense of position and thus improve the drawing overall. If given more time, we would implement our own versions of some of the subcomponents, including the text recognition and edge detection.
