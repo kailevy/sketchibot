@@ -7,7 +7,7 @@
 ## Description
 Sketchibot is a seeing and drawing robot. It attempts to play a 'pictionary'-like game, where the user writes down a prompt for it. It reads the prompt and then proceeds to draw its interpretation of the prompt, using the Bing Search API, OpenCV's canny edge detection & contour finding, and various filtering methods.
 
-For more information about our project and our process, see the project stories included in `/stories`
+For more information about our project and our process, see the project stories included in `/stories`, which you can see [here.](https://github.com/kailevy/sketchibot/tree/master/stories)
 
 ## Prerequisites
 - Marker attachment on the Neato with a servo motor hooked up to pin 11
