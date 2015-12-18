@@ -42,11 +42,22 @@ For more information about our project and our process, see the project stories 
 ## System Architecture
 Sketchibot's work flow requires the coordination of a number of different modular parts described below.
 
+![Work flow](./images/project_workflow.png)
+
 ### Text Reading
+`scripts/text_read.py`
+
+This script provides the text prompts for Sketchibot based off of the user's writing. It uses Tesseract OCR to recognize text, and runs as a ROS node that listens to `camera/image_raw`. Tesseract runs against the camera's image and stores the received value. Once the same string has been received consecutively for a certain number of times, it is sure as to what the reading is. Because Tesseract doesn't work very well on handwriting, we use Hunspell to correct any errors that could arise from Tesseract and make sure that the query we pass out is English.
 
 ### Image Searching
+`scripts/image_search.py`
+
+Once we have received a reading of what the user is prompting for Sketchibot, we need find what it will attempt to sketch. To do this, we use Bing's Search API. The ImageSearcher object sets up the required authentication and endpoints, and allows us to make a query with it's `find_image`. This takes optional parameters, such as how many results to retrieve, how many results to skip, and what filters to use. It makes the request and then directly retrieves the images at the given urls, appends them into a list and sends them out for edge detection.
 
 ### Edge Detection
+`scripts/edge_detect.py`
+
+With the search results for our prompt, we need to analyze their edges to see which ones could be reasonably sketched. To do this, the EdgeDetector runs canny edge detection on a given image, using adaptive thresholding from Otsu's method. This yields an image where the bright pixels are edges, so we must next run contour finding in order to turn them into whole strokes that a Neato can execute. This is done with another OpenCV function-- but that yield contours on either side of an edge. To correct this, we filter out all of the 'holes' as opposed to 'objects'. Then, we attempt to optimize the order of the contours by using a minimum-distance algorithm: from the end of each stroke, we proceed to the closest start of the next stroke. This sorted array is ready to be passed onto filtering.
 
 ### Contour Filtering
 
