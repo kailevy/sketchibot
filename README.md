@@ -62,3 +62,13 @@ With the search results for our prompt, we need to analyze their edges to see wh
 ### Contour Filtering
 
 ### Navigation
+`scripts/navigation.py`
+
+In order to detect the Neato's current position, the gmapping package is used to estimate a path for the robot the follow. For the first waypoint of each stroke, Sketchibot travels to the target location with the pen up. For each subsequent waypoint in the stroke, the marker is lowered and lines are drawn onto the page. It is important that suitable walls or markers are placed around the edges of the canvas, so that an accurate occupancy grid can be produced. Additionally, the laser scanner is only accurate up to a particular range, so it is also important to consider the strength of the LIDAR signal when the Neato is far away from all of its surroundings.
+
+### Main Program
+`scripts/sketchibot.py`
+
+This script runs all of the major components as in the flow diagram specified above. After executing the `roslaunch` command, this program takes care of everything else!
+
+## Future Work
