@@ -60,6 +60,7 @@ class EdgeDetector(object):
             path = self.path
         for contour in path:
             for idx, point in enumerate(contour[0:-1]):
+                # Define line as line from first point to next point
                 p1 = (int(contour[idx][0]), int(contour[idx][1]))
                 p2 = (int(contour[idx+1][0]), int(contour[idx+1][1]))
                 cv2.arrowedLine(self.im2, p1, p2, (255,255,255))
@@ -75,13 +76,18 @@ class EdgeDetector(object):
         """
         unvisited = {}
         for index, contour in enumerate(self.contours):
+            # Mark every contour as unvisited
             unvisited[index] = contour
+        # Find contour closest to start
         start = min(unvisited, key=lambda x: np.linalg.norm(start_point-unvisited[x][0]))
         path = [unvisited[start]]
         unvisited.pop(start, None)
         while unvisited:
+            # Find last point of last stroke
             end = path[-1][-1]
+            # Find nearest start to last point
             nearest = min(unvisited, key=lambda x: np.linalg.norm(end-unvisited[x][0]))
+            # Add it and pop it
             path.append(unvisited[nearest])
             unvisited.pop(nearest, None)
         self.path = path

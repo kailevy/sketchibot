@@ -162,7 +162,7 @@ class ContourFiltering():
                 if 0<i<len(path):
                     cv2.circle(self.im2,(int(path[i][0]*self.screenscale),int(path[i][1]*self.screenscale)),1,(0,0,0),1)
         cv2.imshow("Filtered Waypoint Plot", self.im2) #displays window
-        key = cv2.waitKey(5)                    
+        key = cv2.waitKey(0)                    
 
     def get_strokes(self):
         """returns all the filtered strokes"""
@@ -186,7 +186,7 @@ class ContourFiltering():
 
 if __name__ == '__main__':
     #edge detection stuff
-    detector = EdgeDetector(image_path="../images/cow.png") #creates edge detection class
+    detector = EdgeDetector(image_path="../images/death_star2.jpg") #creates edge detection class
     detector.reconstruct_contours()     #makes contours
     detector.sort_contours()            #sorts them to make the Neato's job easier
     contours = detector.get_contours()  #actually gets image contours
@@ -200,4 +200,4 @@ if __name__ == '__main__':
     strokes = drawing.get_strokes()             #returns strokes
     print strokes
     drawing.plot_contours()                     #plots contours
-    drawing.plot_points()                     #plots contours
+    # drawing.plot_points()                     #plots contours

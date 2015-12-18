@@ -12,11 +12,11 @@ BW = 'Color%3aMonochrome'
 DRAWING = 'Style%3aGraphics'
 MEDIUM = 'Size%3aMedium'
 
-waypt_limit = 300.0
+waypt_limit = 150
 
 #read tesseract text
-# reader = TextReader()
-query = "dog"#reader.get_reading()[1]
+reader = TextReader()
+query = reader.get_reading()[1]
 
 
 #search image
@@ -24,7 +24,7 @@ has_found = False
 skip_counter = 0
 searcher = ImageSearcher()
 while not has_found:
-	print 'searching'
+	print 'searching: ' + query
 	images = searcher.find_image(query=query, skip=skip_counter, filters=[MEDIUM, DRAWING])
 	for picture in images:
 		detector = EdgeDetector(image=picture) #creates edge detection class
@@ -41,10 +41,10 @@ while not has_found:
 			break
 	skip_counter += 10
 detector.display_image()
-# drawing.plot_contours()                     #plots contours
+drawing.plot_contours()                     #plots contours
 
 #send waypoints to neato
-bot = Sketchibot(strokes)
+bot = Sketchibot(strokes, False)
 print "Starting!"
 print strokes
 
