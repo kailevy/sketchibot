@@ -49,28 +49,28 @@ Sketchibot's work flow requires the coordination of a number of different modula
 
 This script provides the text prompts for Sketchibot based off of the user's writing. It uses Tesseract OCR to recognize text, and runs as a ROS node that listens to `camera/image_raw`. Tesseract runs against the camera's image and stores the received value. Once the same string has been received consecutively for a certain number of times, it is sure as to what the reading is. Because Tesseract doesn't work very well on handwriting, we use Hunspell to correct any errors that could arise from Tesseract and make sure that the query we pass out is English.
 
-<img src="../images/neato with whiteboard.jpg" alt="SketchiBot reading its prompt." width="400">
+<img src="./images/neato_with_whiteboard.jpg" alt="SketchiBot reading its prompt." width="400">
 
 ### Image Searching
 `scripts/image_search.py`
 
 Once we have received a reading of what the user is prompting for Sketchibot, we need find what it will attempt to sketch. To do this, we use Bing's Search API. The ImageSearcher object sets up the required authentication and endpoints, and allows us to make a query with it's `find_image`. This takes optional parameters, such as how many results to retrieve, how many results to skip, and what filters to use. We set the parameters to search for a medium sized, mostly black and white image with the phrase "line drawing" appended to the string that results from the text reader. To choose an image, the script runs our edge detection and contour filtering scripts on each image until it finds one with the total number of waypoints under a specific value. It makes the request and then directly retrieves the images at the given urls, appends them into a list and sends them out for edge detection. The image below is the result of our search implementation on the word "cat":
 
-<img src="../images/cat.jpg" alt="The image pulled from a search of 'cat'." width="400">
+<img src="./images/cat.jpg" alt="The image pulled from a search of 'cat'." width="400">
 
 ### Edge Detection
 `scripts/edge_detect.py`
 
 With the search results for our prompt, we need to analyze their edges to see which ones could be reasonably sketched. To do this, the EdgeDetector runs canny edge detection on a given image, using adaptive thresholding from Otsu's method. This yields an image where the bright pixels are edges, so we must next run contour finding in order to turn them into whole strokes that a Neato can execute. This is done with another OpenCV function-- but that yield contours on either side of an edge. To correct this, we filter out all of the 'holes' as opposed to 'objects'. Then, we attempt to optimize the order of the contours by using a minimum-distance algorithm: from the end of each stroke, we proceed to the closest start of the next stroke. This sorted array is ready to be passed onto filtering.
 
-<img src="../images/cat2.png" alt="The contours of the cat." width="400">
+<img src="./images/cat2.png" alt="The contours of the cat." width="400">
 
 ### Contour Filtering
 `scripts/contour_filtering.py`
 
 Once the array of contours from the edge detection program is ready, it gets passed into a script that filters down the contours to make them easier for the Neato to draw. The script inputs the array of contours and the size of the image, each of which can be recieved from the Edge Detection script. It also takes in the physical paper size as an input. When the script runs, the first thing it does is scale up the contours to the size of the page so that they fit within the bounds of the paper the Neato will draw on. It then loops through each of the points in each of the strokes and removes points that form shallow angles between other points and that are too close together for the Neato to reach accurately. After each of the points are filtered, it takes each point and shifts it so that it will always draw the image centered on the page. This function outputs an array of strokes, each stroke an array of waypoints scaled up and placed in the right way for the Neato to draw the image on the page.
 
-<img src="../images/cat3.png" alt="The waypoints of the cat" width="400">
+<img src="./images/cat3.png" alt="The waypoints of the cat" width="400">
 
 ### Navigation
 `scripts/navigation.py`
