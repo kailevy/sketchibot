@@ -80,6 +80,10 @@ In order to detect the Neato's current position, the gmapping package is used to
 ### Main Program
 `scripts/sketchibot.py`
 
-This script runs all of the major components as in the flow diagram specified above. After executing the `roslaunch` command, this program takes care of everything else!
+This script runs all of the major components as in the flow diagram specified above. After executing the `roslaunch` command, this program takes care of everything else! You can see a time lapse of the drawing [here](https://github.com/kailevy/sketchibot/blob/master/images/anim_robot.gif)
+
+<img src="./images/cat_final.JPG" alt="The final cat drawing." width="400">
 
 ## Future Work
+
+
