@@ -49,7 +49,7 @@ Sketchibot's work flow requires the coordination of a number of different modula
 
 This script provides the text prompts for Sketchibot based off of the user's writing. It uses Tesseract OCR to recognize text, and runs as a ROS node that listens to `camera/image_raw`. Tesseract runs against the camera's image and stores the received value. Once the same string has been received consecutively for a certain number of times, it is sure as to what the reading is. Because Tesseract doesn't work very well on handwriting, we use Hunspell to correct any errors that could arise from Tesseract and make sure that the query we pass out is English.
 
-<img src="./images/neato_with_whiteboard.jpg" alt="SketchiBot reading its prompt." width="400">
+<img src="./images/neato with whiteboard.jpg" alt="SketchiBot reading its prompt." width="400">
 
 ### Image Searching
 `scripts/image_search.py`
