@@ -11,6 +11,8 @@ For more information about our project and our process, see the project stories 
 
 ## Prerequisites
 - Marker attachment on the Neato with a servo motor hooked up to pin 11
+- Hole drilled in center of Neato that the marker can fit through
+- Sharpie and servo mounting pieces attached to Neato (files can be found [here](http://www.thingiverse.com/thing:1211017)).
 - Installation on the raspberry pi of the scripts included in `bot_files`
   - Modification of `/etc/rc.local` to run the scripts at startup:
 
