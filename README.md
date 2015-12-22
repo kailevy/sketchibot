@@ -2,7 +2,7 @@
 
 ##### Alex Crease, Jay Woo, Kai Levy
 
-### Computational Robotics Fall 2015 Final Project: Seeing and Drawing Robot
+### Computational Robotics Fall 2015 Final Project: Pictionary Playing Robot
 
 ## Description
 Sketchibot is a seeing and drawing robot. It attempts to play a 'pictionary'-like game, where the user writes down a prompt for it. It reads the prompt and then proceeds to draw its interpretation of the prompt, using the Bing Search API, OpenCV's canny edge detection & contour finding, and various filtering methods.
