@@ -79,7 +79,7 @@ class TextReader(object):
                 cv2.waitKey(5)
 
             if (self.readings[self.index] != ''
-            and streak_start == self.index):
+                    and streak_start == self.index):
                 # We have a valid reading and have looped around
                 # to where we first read it, meaning we are done
                 decided = True
@@ -94,14 +94,14 @@ class TextReader(object):
                 return (self.readings[self.index], suggestion)
 
             elif (self.readings[self.index] == ''
-            or self.readings[self.index] != self.readings[self.index-1]):
+                    or self.readings[self.index] != self.readings[self.index-1]):
                 # Our reading is blank or doesn't match the previous one, so we
                 # restart the counter
                 streak_start = -1
 
             elif (self.readings[self.index] != ''
-            and self.readings[self.index] == self.readings[self.index-1]
-            and streak_start == -1):
+                    and self.readings[self.index] == self.readings[self.index-1]
+                    and streak_start == -1):
                 # We have consecutive readings, start a recording a streak
                 streak_start = self.index
 
